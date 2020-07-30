@@ -48,10 +48,10 @@ class GDMLDetectorConstruction : public DetectorConstruction
   public:
     void ConstructSDandField()
     {
-        G4MultiFunctionalDetector* patient = new G4MultiFunctionalDetector("patient");
+        /*G4MultiFunctionalDetector* patient = new G4MultiFunctionalDetector("patient");
         G4SDManager::GetSDMpointer()->AddNewDetector(patient);
         G4VPrimitiveScorer* sec1 = new G4PSDoseDeposit("dose");
-        patient->RegisterPrimitive(sec1);
+        patient->RegisterPrimitive(sec1);*/
 
         /*for (G4int i = 0; i < 109; i++) {
           char a[100];
@@ -59,7 +59,7 @@ class GDMLDetectorConstruction : public DetectorConstruction
           strcat(a,"_EmphaticLV");
           SetSensitiveDetector(a,patient);
         }*/
-        SetSensitiveDetector("_EmphaticLV",patient);
+        /*SetSensitiveDetector("_EmphaticLV",patient);*/
     }
 
 

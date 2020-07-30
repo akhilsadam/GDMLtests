@@ -102,7 +102,7 @@ void B3DetectorConstruction::DefineMaterials()
   G4MaterialPropertiesTable* BGO_MPT = new G4MaterialPropertiesTable();  
   BGO->SetMaterialPropertiesTable(BGO_MPT);
 
- // BGO_MPT->AddProperty("FASTCOMPONENT", Penergy, fast, 2.15); do we need this?
+ // BGO_MPT->AddProperty("FASTCOMPONENT", Penergy, fast, 2.15); WHAT IS THIS EXACTLY?
   BGO_MPT->AddConstProperty("RINDEX", 2.15);
  // BGO_MPT->AddProperty("ABSLENGTH", Penergy, 1.0*cm, 2.15);
   BGO_MPT->AddConstProperty("SCINTILLATIONYIELD", 8500 / MeV);
@@ -301,7 +301,7 @@ G4VPhysicalVolume* B3DetectorConstruction::Construct()
   //
   // patient
   //
-
+/*
   auto mesh = CADMesh::TessellatedMesh::FromOBJ("recompiled.obj");//"EMPHATIC_Setup_1.stl"
   mesh->SetScale(1);
   //mesh->SetOffset(G4ThreeVector(0,40,0));
@@ -333,7 +333,7 @@ for (G4int i = 0; i < 109; i++) {
 
  // G4VisAttributes* lbVis = new G4VisAttributes(G4Colour(1.0*(G4UniformRand()-0.5),1.0*(G4UniformRand()-0.5),1.0*(G4UniformRand()-0.5))); //random color!
   //lv_i->SetVisAttributes (lbVis);
-  }
+  }*/
 
 
 /*auto solid = mesh->GetSolid();
@@ -426,14 +426,14 @@ void B3DetectorConstruction::ConstructSDandField()
   G4VPrimitiveScorer* sec1 = new G4PSDoseDeposit("dose");
   patient->RegisterPrimitive(sec1);
 
- for (G4int i = 0; i < 109; i++) {
+ /*for (G4int i = 0; i < 109; i++) {
   char a[100];
   sprintf(a,"%d", i);
   strcat(a,"_EmphaticLV");
   SetSensitiveDetector(a,patient);
-}
+}*/
 
- //SetSensitiveDetector("_EmphaticLV",patient);
+ SetSensitiveDetector("world_volume",patient);
 
 }
 

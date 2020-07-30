@@ -84,7 +84,7 @@ int main(int argc,char** argv)
   // Set mandatory initialization classes
   //
 
-  parser.Read("G4EMPHATIC_out.gdml",false);//"mother.gdml"
+  parser.Read("test1.gdml",false);//"G4EMPHATIC_out.gdml"
 
   //B3DetectorConstruction* det = new B3DetectorConstruction;
   //B3DetectorConstruction detr = (B3DetectorConstruction) (*(new GDMLDetectorConstruction(parser.GetWorldVolume())));
