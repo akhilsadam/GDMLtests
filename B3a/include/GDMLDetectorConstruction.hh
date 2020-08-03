@@ -71,7 +71,7 @@ class GDMLDetectorConstruction : public DetectorConstruction
 
 	G4double fast[nEntries] = {0.032258,0.258064,0.322581,0.225806,0.129032,0.032258};//{0.1,0.8,1,0.7,0.4,0.1}
 
-	G4double reflectivity_vk[nEntries] = {0.98,0.98,0.98,0.98,0.98,0.98};
+	G4double reflectivity_vk[nEntries] = {0.9643,0.9680,0.9698,0.9743,0.9761,0.9798};
 	G4double efficiency[nEntries] = {1.0,1.0,1.0,1.0,1.0,1.0};
 
 	G4MaterialPropertiesTable* vkMPT = new G4MaterialPropertiesTable();
