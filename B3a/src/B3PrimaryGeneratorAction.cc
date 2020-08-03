@@ -56,7 +56,7 @@ B3PrimaryGeneratorAction::B3PrimaryGeneratorAction()
   fParticleGun->SetParticleDefinition(particle);
   fParticleGun->SetParticlePosition(G4ThreeVector(0.,0.,0.));
   fParticleGun->SetParticleEnergy(511*keV);  //SetParticleEnergy(1*eV); between 70-250 MeV   
-  fParticleGun->SetParticleMomentumDirection(G4ThreeVector(0.5*(G4UniformRand()-0.5),-1.,0.5*(G4UniformRand()-0.5)));
+  fParticleGun->SetParticleMomentumDirection(G4ThreeVector(0*(G4UniformRand()-0.5),-1.,0*(G4UniformRand()-0.5)));
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -90,7 +90,7 @@ if (particle == G4ChargedGeantino::ChargedGeantino()) {
   ///G4double dx0 = 0*cm, dy0 = 0*cm, dz0 = 0*cm;   
   //G4double x0  = 4*cm, y0  = 4*cm, z0  = 4*cm; MODIFIED TO PLACE GUN OUTSIDE CHAMBER
   G4double x0  = -.25*cm, y0  = 3.1*cm, z0  = 10*cm;
-  G4double dx0 = 1*cm, dy0 = 1*cm, dz0 = 1*cm; 
+  G4double dx0 = 0*cm, dy0 = 0*cm, dz0 = 0*cm; 
   //x0 += dx0*0.001*(G4UniformRand()-0.5);
   //y0 += dy0*0.001*(G4UniformRand()-0.5);
   //z0 += dz0*0.001*(G4UniformRand()-0.5);

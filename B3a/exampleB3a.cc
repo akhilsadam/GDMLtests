@@ -52,6 +52,10 @@
 #include "B3Analysis.hh"
 #include "B3aHistoManager.hh"
 
+#include "FTFP_BERT.hh"
+#include "G4OpticalPhysics.hh"
+#include "G4EmStandardPhysics_option4.hh"
+
 
 #include "G4GDMLParser.hh"
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -90,11 +94,26 @@ int main(int argc,char** argv)
   //B3DetectorConstruction detr = (B3DetectorConstruction) (*(new GDMLDetectorConstruction(parser.GetWorldVolume())));
   //B3DetectorConstruction* det = &detr;
 
-  G4VUserDetectorConstruction* det = new GDMLDetectorConstruction(parser.GetWorldVolume());
+  G4VUserDetectorConstruction* det = new GDMLDetectorConstruction(parser, parser.GetWorldVolume());
 
   runManager->SetUserInitialization(det);
   //
-  runManager->SetUserInitialization(new B3PhysicsList);
+  //runManager->SetUserInitialization(new B3PhysicsList);
+
+  G4VModularPhysicsList* physicsList = new FTFP_BERT;
+  physicsList->ReplacePhysics(new G4EmStandardPhysics_option4());
+  G4OpticalPhysics* opticalPhysics = new G4OpticalPhysics();
+
+  opticalPhysics->SetScintillationYieldFactor(1.);
+  opticalPhysics->SetScintillationExcitationRatio(0.);
+
+  opticalPhysics->SetTrackSecondariesFirst(kCerenkov,true);
+  opticalPhysics->SetTrackSecondariesFirst(kScintillation,true);
+  opticalPhysics->SetScintillationByParticleType(false);
+
+  physicsList->RegisterPhysics(opticalPhysics);
+  runManager->SetUserInitialization(physicsList);
+
 
   // Set user action initialization
   //
@@ -138,7 +157,7 @@ int main(int argc,char** argv)
 
 
   //G4VPhysicalVolume* pWorld = G4TransportationManager::GetTransportationManager()->GetNavigatorForTracking()->GetWorldVolume();
-  //parser.Write("G4EMPHATIC_out.gdml", pWorld);
+  //parser.Write("G4gdml_out.gdml", pWorld);
 
 
   // Job termination
