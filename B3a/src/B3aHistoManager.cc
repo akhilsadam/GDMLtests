@@ -98,7 +98,7 @@ void HistoManager::Book()
 "Dose (Gy)",
 "Energy Dep-secondaries(MeV/ns)"};
 
-   const std::string second[] = { "positron","electron","photons","gammas","proton","alpha","Li6","Be7","C11","C12","N15","O15","O16"};
+   const std::string second[] = { "positron","electron","opticalphoton","gammas","proton","alpha","Li6","Be7","C11","C12","N15","O15","O16"};
    const int secondSize = sizeof(second)/sizeof(second[0]);
   // Default values (to be reset via /analysis/h1/set command)
   G4double* worldsizeP;
@@ -107,13 +107,13 @@ void HistoManager::Book()
 
   G4int nbinsx = 100;
   G4double xmin = 0.;
-  G4double xmax = 237.958;
+  G4double xmax = 10000;
   G4int nbinsy = 100;
   G4double ymin = 0.;
-  G4double ymax = 237.958;
+  G4double ymax = 10000;
   G4int nbinsz = 100;
   G4double zmin = 0.;
-  G4double zmax = 324;
+  G4double zmax = 10000;
 
   G4double sbins = secondSize;
 

@@ -108,7 +108,7 @@ const int size = secondaries->size();
 //std::vector< const G4DynamicParticle*>* secondparticles = new std::vector< const G4DynamicParticle* >(size);
 
  //int nOfe = 0;
-const std::string title[] = { "e+","e-","gamma","gamma","proton","alpha","Li6","Be7","C11","C12","N15","O15","O16"};
+const std::string title[] = { "e+","e-","opticalphoton","gamma","proton","alpha","Li6","Be7","C11","C12","N15","O15","O16"};
 const int titleSize = sizeof(title)/sizeof(title[0]);
 
 G4double timeL = prePoint->GetLocalTime();
@@ -151,23 +151,6 @@ Etot += (edep/MeV);
            //G4cout << pdVar << " " << title[i] << " " << titleSize << G4endl;
 		if(pdVar.compare(title[i])==0)
 		{
-			if(i==2)
-			{
-				if(pp->GetTotalEnergy() > 500*keV)
-				{analysisManager->FillH1(1, (0.5+3), 1);
-				}
-				else
-				{analysisManager->FillH1(1, (0.5+2), 1);
-				}
-				//G4cout << "true " << pdVar << " " << title[i] << G4endl;
-				filled = true;
-				//add to histogram!!
-				
-				//analysisManager->FillNtupleDColumn(i,1);
-				//analysisManager->AddNtupleRow();
-				break;
-
-			}
 			filled = true;
 			//add to histogram!!
 			analysisManager->FillH1(1, (0.5+i), 1);

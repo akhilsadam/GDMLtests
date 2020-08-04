@@ -40,6 +40,7 @@ class GDMLDetectorConstruction : public DetectorConstruction
   public:
    GDMLDetectorConstruction(G4GDMLParser& parser, G4VPhysicalVolume *setWorld = 0) : DetectorConstruction()
    {
+	G4cout << "WORLDSIZE -----------------------------------------------------GDML - : " << parser.GetVolume("S_EJ208(1)")->GetSolid()->GetCubicVolume()/(cm3) << G4endl;
       World = setWorld;
 
 	G4NistManager* man = G4NistManager::Instance();
@@ -59,32 +60,32 @@ class GDMLDetectorConstruction : public DetectorConstruction
 	EJ208->AddElement(H,10);
 	EJ208->GetIonisation()->SetBirksConstant(0.1955*mm/MeV);
 	
-	const G4int nEntries = 6;
+	const G4int n = 6;
 
-	G4double PhotonEnergy[nEntries] = {3.105*eV,2.95714*eV,2.855*eV,2.7*eV,2.5875*eV,2.388*eV}; //visible spectrum (400,420,435,460,480,520)nm
+	G4double PhotonEnergy[n] = {3.105*eV,2.95714*eV,2.855*eV,2.7*eV,2.5875*eV,2.388*eV}; //visible spectrum (400,420,435,460,480,520)nm
 	
-	G4double refractive_index_vk[nEntries] = {1.6,1.6,1.6,1.6,1.6,1.6};
-	G4double att_length_vk[nEntries] = {400*cm,400*cm,400*cm,400*cm,400*cm,400*cm};
+	G4double refractive_index_vk[n] = {1.6,1.6,1.6,1.6,1.6,1.6};
+	G4double att_length_vk[n] = {400*cm,400*cm,400*cm,400*cm,400*cm,400*cm};
 
-	G4double refractive_index_ej[nEntries] = {1.58,1.58,1.58,1.58,1.58,1.58};
-	G4double att_length_ej[nEntries] = {400*cm,400*cm,400*cm,400*cm,400*cm,400*cm};
+	G4double refractive_index_ej[n] = {1.58,1.58,1.58,1.58,1.58,1.58};
+	G4double att_length_ej[n] = {400*cm,400*cm,400*cm,400*cm,400*cm,400*cm};
 
-	G4double fast[nEntries] = {0.032258,0.258064,0.322581,0.225806,0.129032,0.032258};//{0.1,0.8,1,0.7,0.4,0.1}
+	G4double fast[n] = {0.032258,0.258064,0.322581,0.225806,0.129032,0.032258};//{0.1,0.8,1,0.7,0.4,0.1}
 
-	G4double reflectivity_vk[nEntries] = {0.9643,0.9680,0.9698,0.9743,0.9761,0.9798};
-	G4double efficiency[nEntries] = {1.0,1.0,1.0,1.0,1.0,1.0};
+	G4double reflectivity_vk[n] = {.9150,.9334,.9452,.9566,.9652,.9698}; //using ESR_Clear. DRP:{0.9643,0.9680,0.9698,0.9743,0.9761,0.9798};
+	G4double efficiency[n] = {1.0,1.0,1.0,1.0,1.0,1.0};
 
 	G4MaterialPropertiesTable* vkMPT = new G4MaterialPropertiesTable();
 	G4MaterialPropertiesTable* scintMPT = new G4MaterialPropertiesTable();
 	G4MaterialPropertiesTable* surfVKMPT = new G4MaterialPropertiesTable();
 	G4MaterialPropertiesTable* surfEJMPT = new G4MaterialPropertiesTable();
 
-	vkMPT->AddProperty("RINDEX", PhotonEnergy,refractive_index_vk,nEntries);
-	vkMPT->AddProperty("ABSLENGTH", PhotonEnergy,att_length_vk,nEntries);
+	vkMPT->AddProperty("RINDEX", PhotonEnergy,refractive_index_vk,n);
+	vkMPT->AddProperty("ABSLENGTH", PhotonEnergy,att_length_vk,n);
 
-	scintMPT->AddProperty("RINDEX", PhotonEnergy,refractive_index_ej,nEntries);
-	scintMPT->AddProperty("ABSLENGTH", PhotonEnergy,att_length_ej,nEntries);
-	scintMPT->AddProperty("FASTCOMPONENT", PhotonEnergy, fast, nEntries);
+	scintMPT->AddProperty("RINDEX", PhotonEnergy,refractive_index_ej,n);
+	scintMPT->AddProperty("ABSLENGTH", PhotonEnergy,att_length_ej,n);
+	scintMPT->AddProperty("FASTCOMPONENT", PhotonEnergy, fast, n);
   	scintMPT->AddConstProperty("SCINTILLATIONYIELD", 9200 / MeV);
   	scintMPT->AddConstProperty("RESOLUTIONSCALE", 1.0);
 	scintMPT->AddConstProperty("FASTSCINTILLATIONRISETIME", 1.0 * ns);
@@ -94,30 +95,47 @@ class GDMLDetectorConstruction : public DetectorConstruction
 	EJ208->SetMaterialPropertiesTable(scintMPT);
 	Vikuiti->SetMaterialPropertiesTable(vkMPT);
 	
-	surfVKMPT->AddProperty("REFLECTIVITY", PhotonEnergy, reflectivity_vk, nEntries);
-	surfEJMPT->AddProperty("REFLECTIVITY", PhotonEnergy, reflectivity_vk, nEntries);
-	surfVKMPT->AddProperty("EFFICIENCY", PhotonEnergy, efficiency, nEntries);
-	surfEJMPT->AddProperty("EFFICIENCY", PhotonEnergy, efficiency, nEntries);
-	surfVKMPT->AddProperty("RINDEX", PhotonEnergy,refractive_index_ej,nEntries);
-	surfEJMPT->AddProperty("RINDEX", PhotonEnergy,refractive_index_ej,nEntries);
+	surfVKMPT->AddProperty("REFLECTIVITY", PhotonEnergy, reflectivity_vk, n);
+	surfEJMPT->AddProperty("REFLECTIVITY", PhotonEnergy, reflectivity_vk, n);
+	surfVKMPT->AddProperty("EFFICIENCY", PhotonEnergy, efficiency, n);
+	surfEJMPT->AddProperty("EFFICIENCY", PhotonEnergy, efficiency, n);
+	surfVKMPT->AddProperty("RINDEX", PhotonEnergy,refractive_index_ej,n);
+	surfEJMPT->AddProperty("RINDEX", PhotonEnergy,refractive_index_ej,n);
 
 
 
 	G4OpticalSurface* surfVK = new G4OpticalSurface("surfVK");
 	G4OpticalSurface* surfEJ = new G4OpticalSurface("surfEJ");
 
-	surfVK->SetType(dielectric_dielectric);
+	G4double sigma_alpha = 0.209439; //12deg., all specular lobe
+	G4double specularlobe[n] = {1.0,1.0,1.0,1.0,1.0,1.0};
+	G4double specularspike[n] = {0.0,0.0,0.0,0.0,0.0,0.0};
+	G4double backscatter[n] = {0.0,0.0,0.0,0.0,0.0,0.0};
+
+
+	surfVKMPT->AddProperty("SPECULARLOBECONSTANT",PhotonEnergy,specularlobe,n);
+	surfVKMPT->AddProperty("SPECULARSPIKECONSTANT",PhotonEnergy,specularspike,n);
+	surfVKMPT->AddProperty("BACKSCATTERCONSTANT",PhotonEnergy,backscatter,n);
+
+	surfEJMPT->AddProperty("SPECULARLOBECONSTANT",PhotonEnergy,specularlobe,n);
+	surfEJMPT->AddProperty("SPECULARSPIKECONSTANT",PhotonEnergy,specularspike,n);
+	surfEJMPT->AddProperty("BACKSCATTERCONSTANT",PhotonEnergy,backscatter,n);
+
+
+	surfVK->SetType(dielectric_metal);
 	surfVK->SetModel(unified);
-	surfVK->SetFinish(polishedfrontpainted);
+	surfVK->SetFinish(ground);
+	surfVK->SetSigmaAlpha(sigma_alpha);
 	surfVK->SetMaterialPropertiesTable(surfVKMPT);
 
 	surfEJ->SetType(dielectric_dielectric);
 	surfEJ->SetModel(unified);
-	surfEJ->SetFinish(polished);
+	surfEJ->SetFinish(groundbackpainted);
+	surfEJ->SetSigmaAlpha(sigma_alpha);
 	surfEJ->SetMaterialPropertiesTable(surfEJMPT);
 
 	/* NEED TO ADD THESE - what are the values?
-	surf->SetSigmaAlpha(sigma_alpha);
+	
 	MPT->AddProperty("SPECULARLOBECONSTANT",pp,specularlobe,NUM);
 	MPT->AddProperty("SPECULARSPIKECONSTANT",pp,specularspike,NUM);
 	MPT->AddProperty("BACKSCATTERCONSTANT",pp,backscatter,NUM);
@@ -126,6 +144,7 @@ class GDMLDetectorConstruction : public DetectorConstruction
 
 	G4VisAttributes* red_col = new G4VisAttributes(G4Color(0.6,0.4,0.4,1));
 	G4VisAttributes* blue_col = new G4VisAttributes(G4Color(0.4,0.4,0.6,1));
+	G4VisAttributes* det_col = new G4VisAttributes(G4Color(0.8,0.8,1.0,1));
 
 	G4LogicalVolume* EJvol;
 	G4VPhysicalVolume* EJvol_P;
@@ -159,7 +178,14 @@ class GDMLDetectorConstruction : public DetectorConstruction
 	  VKvol->SetVisAttributes (blue_col);
 	  VKsurf = new G4LogicalSkinSurface("surfVK_L",VKvol, surfVK);	
         }
-	
+
+	G4double dX = 0.770*cm; G4double dY = 1.030*cm; G4double dZ = 1*cm;
+	G4Box* det = new G4Box("det", dX/2, dY/2, dZ/2);
+	G4LogicalVolume* logicDet = new G4LogicalVolume(det,EJ208,"detVOL");
+	logicDet->SetVisAttributes (det_col);
+    	G4ThreeVector pos = G4ThreeVector(-0.260*cm,0.483*cm,0.5*cm);
+	new G4PVPlacement(0,pos,"det",logicDet,World, false,0,fCheckOverlaps);       // checking overlaps 
+
 	/*G4Tubs* testP = new G4Tubs("Crystal",0*cm,10*cm, 5*cm,0,2*pi);
 	G4LogicalVolume* lc = new G4LogicalVolume(testP,EJ208,"Crystal");
 	G4ThreeVector pos = G4ThreeVector(0*cm,0*cm,0*cm);
@@ -173,7 +199,6 @@ class GDMLDetectorConstruction : public DetectorConstruction
 
    G4VPhysicalVolume *Construct()
    {
-	
      return World;
    }
 
