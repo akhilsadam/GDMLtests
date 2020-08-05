@@ -86,17 +86,17 @@ void HistoManager::Book()
                  };
 */
    const G4String title[] = 
-                { "E-Deposition (MeV/mm)",
-		  "E-Deposition 2D (MeV/mm)",
-		  "E-Deposition 3D (MeV/mm)",
+                { "E-Deposition (keV/mm)",
+		  "E-Deposition 2D (keV/mm)",
+		  "E-Deposition 3D (keV/mm)",
 		  "Secondary List",
-"E-Deposition Total (MeV)",
-"E-Deposition p+ (MeV)",
-"E-Deposition e+ (MeV)",
-"E-Deposition e- (MeV)",
-"E-Deposition y  (MeV)",
+"E-Deposition Total (keV)",
+"E-Deposition y (keV)",
+"E-Deposition opticalPhotons (keV)",
+"E-Deposition e-  (keV)",
 "Dose (Gy)",
-"Energy Dep-secondaries(MeV/ns)"};
+"Energy Change (keV/step)",
+"Photon-Deposition 2D (keV/mm)"};
 
    const std::string second[] = { "positron","electron","opticalphoton","gammas","proton","alpha","Li6","Be7","C11","C12","N15","O15","O16"};
    const int secondSize = sizeof(second)/sizeof(second[0]);
@@ -107,17 +107,18 @@ void HistoManager::Book()
 
   G4int nbinsx = 100;
   G4double xmin = 0.;
-  G4double xmax = 10000;
+  G4double xmax = 300;
   G4int nbinsy = 100;
   G4double ymin = 0.;
-  G4double ymax = 10000;
+  G4double ymax = 300;
   G4int nbinsz = 100;
   G4double zmin = 0.;
-  G4double zmax = 10000;
+  G4double zmax = 300;
+  G4double maxEn = 511;//keV
 
   G4double sbins = secondSize;
 
-    G4int ih = analysisManager->CreateH1(title[0], title[0], nbinsx, xmin, xmax);
+    G4int ih = analysisManager->CreateH1(title[0], title[0], nbinsx, ymin, ymax);
     analysisManager->SetH1Activation(ih, true);
 G4cout << "### ####### " << worldsize << " worldsize." << G4endl;
     G4int ih2 = analysisManager->CreateH2(title[1], title[1], nbinsx, xmin, xmax, nbinsy, ymin, ymax);
@@ -144,27 +145,36 @@ G4cout << "### ####### " << worldsize << " worldsize." << G4endl;
 G4int nBinE = 100;
 G4int nBinG = 100;
 
-	G4int ih5 = analysisManager->CreateH1(title[4], title[4], nBinE,0,40);
+	G4int ih5 = analysisManager->CreateH1(title[4], title[4], nBinE,0,maxEn);
     	analysisManager->SetH1Activation(ih5, true);
-ih5 = analysisManager->CreateH1(title[5], title[5], nBinE,0,40);
+ih5 = analysisManager->CreateH1(title[5], title[5], nBinE,0,maxEn);
     	analysisManager->SetH1Activation(ih5, true);
-ih5 = analysisManager->CreateH1(title[6], title[6], nBinE,0,20);
+ih5 = analysisManager->CreateH1(title[6], title[6], nBinE,0,maxEn);
     	analysisManager->SetH1Activation(ih5, true);
-ih5 = analysisManager->CreateH1(title[7], title[7], nBinE,0,20);
-    	analysisManager->SetH1Activation(ih5, true);
-ih5 = analysisManager->CreateH1(title[8], title[8], nBinE,0,10);
+ih5 = analysisManager->CreateH1(title[7], title[7], nBinE,0,maxEn);
     	analysisManager->SetH1Activation(ih5, true);
 
-ih5 = analysisManager->CreateH1(title[9], title[9], nBinG,0,5.e-12);
+ih5 = analysisManager->CreateH1(title[8], title[8], nBinG,0,5.e-12);
     	analysisManager->SetH1Activation(ih5, true);
 
   G4int nbinst = 40000;
   G4double tmin = 0.;
-  G4double tmax = 1.25; //in ns
+  G4double tmax = 40000; //in steps
 
 
-ih5 = analysisManager->CreateH1(title[10], title[10], nbinst, tmin, tmax);
+ih5 = analysisManager->CreateH1(title[9], title[9], nbinst, tmin, tmax);
     	analysisManager->SetH1Activation(ih5, true);
+
+G4double Ox = -2.58*cm;
+G4double Oy = 4.83*cm;
+G4double Dx = 7.74*cm;
+G4double Dy = 10.32*cm;
+G4int nx = 3;
+G4int ny = 16; //4x4
+
+ih5 = analysisManager->CreateH2(title[10], title[10], nx, (-Dx/2), (Dx/2), ny,(-Dy/2),(Dy/2));
+    analysisManager->SetH2Activation(ih2, true);
+
 
 /*
   // Create all histograms as inactivated 

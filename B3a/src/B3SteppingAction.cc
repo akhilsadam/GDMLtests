@@ -51,7 +51,10 @@
 
 #include "G4UnitsTable.hh"
 #include "G4SystemOfUnits.hh"
-
+std::mutex foo2;
+std::mutex barL2;
+G4int B3SteppingAction::id = 0;
+G4double lastEnergy=0;
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 B3SteppingAction::B3SteppingAction(B3aEventAction* EvAct, G4VUserDetectorConstruction* patient)
@@ -67,10 +70,8 @@ B3SteppingAction::~B3SteppingAction()
 
 void B3SteppingAction::UserSteppingAction(const G4Step* step)
 {
-
-G4double edep = step->GetTotalEnergyDeposit();
-
-//if (edep <= 0.) return;
+std::lock(foo2,barL2);
+G4double edep = (step->GetTotalEnergyDeposit())/keV;
 
  G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();     
 
@@ -91,17 +92,11 @@ G4double edep = step->GetTotalEnergyDeposit();
  G4double yshifted = y + 0.5*(((DetectorConstruction*) fpatient)->GetWorldSizeXY());
  G4double zshifted = z + 0.5*(((DetectorConstruction*) fpatient)->GetWorldSizeZ());
 
-/*G4cout
-     << G4endl
-     << "--------------------"<< fpatient->GetWorldSizeXY() <<"-----------------------"
-     << G4endl;*/
- //G4double zshifted = x + 0.5*patient->GetAbsorSizeX();
-
- analysisManager->FillH1(0, xshifted, edep);//x,edep
+ analysisManager->FillH1(0, yshifted, edep);//y,edep
  analysisManager->FillH2(0, xshifted, yshifted, edep);
  analysisManager->FillH3(0, xshifted, yshifted, zshifted, edep);
 
-//implemented later: log secondaries only when they have been created
+
 const std::vector< const G4Track* >* secondaries = step->GetSecondaryInCurrentStep();  
 const int size = secondaries->size();
 //std::vector< G4double> times = std::vector<G4double>();
@@ -111,84 +106,85 @@ const int size = secondaries->size();
 const std::string title[] = { "e+","e-","opticalphoton","gamma","proton","alpha","Li6","Be7","C11","C12","N15","O15","O16"};
 const int titleSize = sizeof(title)/sizeof(title[0]);
 
-G4double timeL = prePoint->GetLocalTime();
-
-//G4cout << "//--Time (step): " << (timeL/ns) << " ns"<< G4endl;
-//implemented here: log secondaries only when they have been created
-//log the primary only once!
-//std::vector<G4double>::iterator it = find(times.begin(),times.end(),(timeL/ns));
-G4double Etot = (step->GetTrack()->GetTotalEnergy()/MeV) -938;
-if(Etot <=0)
-	Etot = 0;
+	std::string prim = step->GetTrack()->GetDynamicParticle()->GetParticleDefinition()->GetParticleName();
+	G4double Eprim = (step->GetTrack()->GetTotalEnergy()/keV);
+	G4double Esec = 0;
+	if(prim.compare("gamma")==0)
+	{
+		/*if(Eprim <=0)
+		{
+			Eprim = 0;
+			G4cout<<"//\\prim <=0"<<G4endl;
+		}*/
+		Esec += (edep);
+	
+	
 //ADD ENERGY TO TOTAL LIST
-G4cout << "-- Primary: " << step->GetTrack()->GetDynamicParticle()->GetParticleDefinition()->GetParticleName()<<" || Ep: "<<(Etot)<<G4endl;
+//G4cout << "-- Primary: " << step->GetTrack()->GetDynamicParticle()->GetParticleDefinition()->GetParticleName()<<" || Ep: "<<(Etot)<<G4endl;
 //G4cout << " -- Edep: " <<(edep/MeV)<<G4endl;
-Etot += (edep/MeV);	
 //times.push_back((timeL/ns));	
 //log the secondaries:
 
- for(int n = 0; n < size; n++)
-{
-	G4Track* ptrG4Track = (G4Track*)(*secondaries)[n];
-	const G4DynamicParticle* pp = (const G4DynamicParticle*) ptrG4Track->GetDynamicParticle();
- 	const G4ParticleDefinition* pd = (const G4ParticleDefinition*) pp->GetParticleDefinition();
-	const std::string pdVar = pd->GetParticleName();
-
-	//G4cout << "-- Secondary: " << pdVar << " || Es: " << (pp->GetKineticEnergy()/MeV) << G4endl;
-	const G4VProcess* ps = prePoint->GetProcessDefinedStep();
-	if(ps)
-	{	
-		G4cout << "-- - Secondary process name: " << (prePoint->GetProcessDefinedStep()->GetProcessName()) << G4endl;	
-	}
-	Etot += (pp->GetKineticEnergy()/MeV);
-
-	//analysisManager->FillH1(8, (timeL/ns), deltaE);
-	if(pdVar.compare("e+")==0){
-	G4cout << pdVar <<" " << (pp->GetKineticEnergy()/MeV) << G4endl;}
-	bool filled = false;
-	for(int i = 0; i < titleSize; i++)
+ 	for(int n = 0; n < size; n++)
 	{
-           //G4cout << pdVar << " " << title[i] << " " << titleSize << G4endl;
-		if(pdVar.compare(title[i])==0)
+		G4Track* ptrG4Track = (G4Track*)(*secondaries)[n];
+		const G4DynamicParticle* pp = (const G4DynamicParticle*) ptrG4Track->GetDynamicParticle();
+	 	const G4ParticleDefinition* pd = (const G4ParticleDefinition*) pp->GetParticleDefinition();
+		const std::string pdVar = pd->GetParticleName();
+	
+		/*G4cout << "-- Secondary: " << pdVar << " || Es: " << (pp->GetKineticEnergy()/MeV) << G4endl;
+		const G4VProcess* ps = prePoint->GetProcessDefinedStep();
+		if(ps)
+		{	
+			G4cout << "-- - Secondary process name: " << (prePoint->GetProcessDefinedStep()->GetProcessName()) << G4endl;	
+		}*/
+	
+		Esec += (pp->GetKineticEnergy()/keV);
+	
+		bool filled = false;
+		for(int i = 0; i < titleSize; i++)
 		{
-			filled = true;
-			//add to histogram!!
-			analysisManager->FillH1(1, (0.5+i), 1);
-			//analysisManager->FillNtupleDColumn(i,1);
-			//analysisManager->AddNtupleRow();
-			break;
-
+        	   //G4cout << pdVar << " " << title[i] << " " << titleSize << G4endl;
+			if(pdVar.compare(title[i])==0)
+			{
+				filled = true;
+				//add to histogram!!
+				analysisManager->FillH1(1, (0.5+i), 1);
+				break;
+	
+			}
 		}
+			
+		if(!filled)
+		{
+		G4cout
+			<< G4endl
+			<< "------//\\---------- broke if statement "<< pdVar <<" -///////////\\\\\\\\\\"
+			<< G4endl;
+		}
+
 	}
-		
-	if(!filled)
+	//G4cout << "/|\\--- Total (should equal the previous primary): " << (Etot) <<G4endl;
+		analysisManager->FillH1(7, (id), (Eprim+Esec-lastEnergy));
+		lastEnergy = Eprim;
+		id += 1;
+	}
+	 //example of saving random number seed of this event, under condition
+	 //// if (condition) G4RunManager::GetRunManager()->rndmSaveThisEvent();  
+
+	G4double Ox = -2.58*cm;
+	G4double Oy = 4.83*cm;
+
+	G4String vol = prePoint->GetTouchableHandle()->GetVolume()->GetLogicalVolume()->GetName();
+	if((vol.compare("detVOL")==0)&&(prePoint->GetStepStatus() == fGeomBoundary))
 	{
-	/*G4cout
-		<< G4endl
-		<< "------//\\---------- broke if statement "<< pdVar <<" -///////////\\\\\\\\\\"
-		<< G4endl;*/
+		G4cout << "Filled Hist" << G4endl;
+		analysisManager->FillH2(1, (x-Ox), (y-Oy), 1);
 	}
 
-//RECURSIVE SECONDARY ENERGIES::::
 
-
-
-	//(*secondparticles)[n] = pp;
-
-/*G4cout
-     << G4endl
-     << "-------------------- "<< nOfe <<" ----"<< n <<"-------------------"
-     << "-------------------- "<< size <<" -----------------------"
-     << G4endl;*/
-
+	foo2.unlock();
+	barL2.unlock();
 }
-G4cout << "/|\\--- Total (should equal the previous primary): " << (Etot) <<G4endl;
-analysisManager->FillH1(8, (timeL/ns), (Etot));
-
-  
- //example of saving random number seed of this event, under condition
- //// if (condition) G4RunManager::GetRunManager()->rndmSaveThisEvent();  
-}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
+	//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+		
