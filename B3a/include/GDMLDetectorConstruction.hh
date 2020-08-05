@@ -40,8 +40,13 @@ class GDMLDetectorConstruction : public DetectorConstruction
   public:
    GDMLDetectorConstruction(G4GDMLParser& parser, G4VPhysicalVolume *setWorld = 0) : DetectorConstruction()
    {
-	G4cout << "WORLDSIZE -----------------------------------------------------GDML - : " << parser.GetVolume("S_EJ208(1)")->GetSolid()->GetCubicVolume()/(cm3) << G4endl;
-      World = setWorld;
+	G4cout <<""<< G4endl;
+	G4cout << "--//\\\\Scintillator Volume ---- GDML - : " << parser.GetVolume("S_EJ208(1)")->GetSolid()->GetCubicVolume()/(cm3) << G4endl;
+	G4cout <<""<< G4endl;
+
+     	World = setWorld;
+
+	//--------------
 
 	G4NistManager* man = G4NistManager::Instance();
   
@@ -134,14 +139,6 @@ class GDMLDetectorConstruction : public DetectorConstruction
 	surfEJ->SetSigmaAlpha(sigma_alpha);
 	surfEJ->SetMaterialPropertiesTable(surfEJMPT);
 
-	/* NEED TO ADD THESE - what are the values?
-	
-	MPT->AddProperty("SPECULARLOBECONSTANT",pp,specularlobe,NUM);
-	MPT->AddProperty("SPECULARSPIKECONSTANT",pp,specularspike,NUM);
-	MPT->AddProperty("BACKSCATTERCONSTANT",pp,backscatter,NUM);
-	*/
-
-
 	G4VisAttributes* red_col = new G4VisAttributes(G4Color(0.6,0.4,0.4,1));
 	G4VisAttributes* blue_col = new G4VisAttributes(G4Color(0.4,0.4,0.6,1));
 	G4VisAttributes* det_col = new G4VisAttributes(G4Color(0.8,0.8,1.0,1));
@@ -179,13 +176,16 @@ class GDMLDetectorConstruction : public DetectorConstruction
 	  VKsurf = new G4LogicalSkinSurface("surfVK_L",VKvol, surfVK);	
         }
 
-	G4double dX = 0.770*cm; G4double dY = 1.030*cm; G4double dZ = 1*cm;
+	//--------- Detecting (SiPM like) Endcap Geometry -------------//\\
+
+	G4double dX = 7.74*cm; G4double dY = 10.32*cm; G4double dZ = 1*cm;
 	G4Box* det = new G4Box("det", dX/2, dY/2, dZ/2);
 	G4LogicalVolume* logicDet = new G4LogicalVolume(det,EJ208,"detVOL");
 	logicDet->SetVisAttributes (det_col);
-    	G4ThreeVector pos = G4ThreeVector(-0.260*cm,0.483*cm,0.5*cm);
+    	G4ThreeVector pos = G4ThreeVector(-2.58*cm,4.83*cm,-0.5*cm);
+	G4ThreeVector pos2 = G4ThreeVector(-2.58*cm,4.83*cm,200.5*cm);
 	new G4PVPlacement(0,pos,"det",logicDet,World, false,0,fCheckOverlaps);       // checking overlaps 
-
+	new G4PVPlacement(0,pos2,"det",logicDet,World, false,1,fCheckOverlaps); 
 	/*G4Tubs* testP = new G4Tubs("Crystal",0*cm,10*cm, 5*cm,0,2*pi);
 	G4LogicalVolume* lc = new G4LogicalVolume(testP,EJ208,"Crystal");
 	G4ThreeVector pos = G4ThreeVector(0*cm,0*cm,0*cm);
