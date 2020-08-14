@@ -49,10 +49,8 @@ B3PrimaryGeneratorAction::B3PrimaryGeneratorAction()
   fParticleGun  = new G4ParticleGun(n_particle);
 
   // default particle kinematic
-  // MODIFIED to use proton gun instead//////////////////////////////////////	
   G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();
-  G4ParticleDefinition* particle
-                    = particleTable->FindParticle("gamma");//FindParticle("chargedgeantino");
+  G4ParticleDefinition* particle = particleTable->FindParticle("gamma");//FindParticle("chargedgeantino");
   fParticleGun->SetParticleDefinition(particle);
   fParticleGun->SetParticlePosition(G4ThreeVector(0.,0.,0.));
   fParticleGun->SetParticleEnergy(511*keV);  //SetParticleEnergy(1*eV); between 70-250 MeV   
@@ -89,7 +87,7 @@ if (particle == G4ChargedGeantino::ChargedGeantino()) {
   ///G4double x0  = 0*cm, y0  = 0*cm, z0  = 0*cm;
   ///G4double dx0 = 0*cm, dy0 = 0*cm, dz0 = 0*cm;   
   //G4double x0  = 4*cm, y0  = 4*cm, z0  = 4*cm; MODIFIED TO PLACE GUN OUTSIDE CHAMBER
-  G4double x0  = -2.5*cm, y0  = 31.0*cm, z0  = 100*cm;
+  G4double x0  = -2.58*cm, y0  = 30*cm, z0  = 50*cm;
   G4double dx0 = 0*cm, dy0 = 0*cm, dz0 = 0*cm; 
   //x0 += dx0*0.001*(G4UniformRand()-0.5);
   //y0 += dy0*0.001*(G4UniformRand()-0.5);

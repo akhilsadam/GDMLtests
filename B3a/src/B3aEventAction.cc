@@ -30,7 +30,9 @@
 #include "B3aEventAction.hh"
 #include "B3aRunAction.hh"
 #include "B3Analysis.hh"
+#include "B3Hit.hh"
 
+#include "G4Run.hh"
 #include "G4RunManager.hh"
 #include "G4Event.hh"
 
@@ -42,12 +44,13 @@
 #include "G4UnitsTable.hh"
 #include "G4SystemOfUnits.hh"
 
-
-G4int fCollID_cryst_p;
+/*G4int fCollID_cryst_p;
 G4int fCollID_cryst_ep;
 G4int fCollID_cryst_en;
-G4int fCollID_cryst_y;
+G4int fCollID_cryst_y;*/
 
+G4int detL_npho;
+G4int detR_npho;
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 B3aEventAction::B3aEventAction(B3aRunAction* runAction)
@@ -72,16 +75,68 @@ B3aEventAction::~B3aEventAction()
 void B3aEventAction::BeginOfEventAction(const G4Event* /*evt*/)
 { 
 }
-
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 void B3aEventAction::EndOfEventAction(const G4Event* evt )
 {
+  G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();
+  G4int nx = 3;
+  G4int ny = 16;
+  G4double Dx = 7.74*cm;
+  G4double Dy = 10.32*cm;
+  G4int entry;
+  G4int left=0;
+  G4int right=0;
+  G4int nevents = fRunAction->GetNevents();
+  for(int x = 0; x<(nx); x++)
+  {
+    for(int y = 0; y<(ny); y++)
+    {
+      left = (G4int) analysisManager->GetH2(4)->bin_entries((x),(y));
+      right = (G4int) analysisManager->GetH2(5)->bin_entries((x),(y));
+      entry = left + right;
+      //G4cout << "ENTRY: " << entry << G4endl;
+      if ((entry > 0) && (nevents !=0))
+      {
+        //G4cout << " Filling " << G4endl;
+        analysisManager->FillH2(6, (x),(y), (1.0/nevents) );
+        analysisManager->FillH2(11, (right),(left), (1) ); //P@1 VS P@2
+      }
+    }
+  }
+  analysisManager->GetH2(4)->reset();
+  analysisManager->GetH2(5)->reset();
+
+
+  
+
+
+
+
+
+/*
+ if ( detL_npho <=0 ) {
+   detL_npho = G4SDManager::GetSDMpointer()->GetCollectionID("detL/nPho");
+  }
+ if ( detR_npho <=0 ) {
+   detR_npho = G4SDManager::GetSDMpointer()->GetCollectionID("detR/nPho");
+  }
+
+
+
    //Hits collections
   //  
   G4HCofThisEvent* HCE = evt->GetHCofThisEvent();
-  if(!HCE) return;
-    G4SDManager* SDMan = G4SDManager::GetSDMpointer();                
+  if(!HCE) 
+  {
+    G4cout << "NO HIT COLLECTIONS!" << G4endl;
+    return;
+  }
+    G4SDManager* SDMan = G4SDManager::GetSDMpointer();     
+    SDMan->ListTree();     
+
+*/
+    //SDMan->SetVerboseLevel(0);       
    // Get hits collections IDs
   /*if (fCollID_cryst < 0) {
  
@@ -94,18 +149,89 @@ void B3aEventAction::EndOfEventAction(const G4Event* evt )
 
         
   }*/
-  fCollID_patient = SDMan->GetCollectionID("patient/dose");
-  G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();
+
+/*
   
   //Energy in crystals : identify 'good events'
   //
   const G4double eThreshold = 500*keV;
   G4int nbOfFired = 0;
-   
-  G4THitsMap<G4double>* evtMap = 
-                     (G4THitsMap<G4double>*)(HCE->GetHC(fCollID_cryst));
-               
-  std::map<G4int,G4double*>::iterator itr;
+  bool mapL = true;
+  bool mapR = true;
+  B3Hit* hit;  
+ 
+  B3HitsCollection* HCmapL = (B3HitsCollection*)(HCE->GetHC(detL_npho)); 
+  if(!HCmapL)  
+  {
+    G4cout << "NO HIT COLLECTION L!" << G4endl;
+    mapL = false;
+  }
+  uint lengthL;
+  std::vector<B3Hit>*  evtMapL;
+  
+  B3HitsCollection* HCmapR = (B3HitsCollection*)(HCE->GetHC(detR_npho)); 
+  if(!HCmapR)
+  {
+    G4cout << "NO HIT COLLECTION R!" << G4endl;
+    mapR = false;
+  }
+  uint lengthR;
+  std::vector<B3Hit>*  evtMapR;
+*/
+  // "LIT" deposit in RL detectors
+  // 
+  /*
+  if(mapL)
+  {
+    try
+    { 
+     evtMapL =  (std::vector<B3Hit>*) (HCmapL->GetVector());
+     lengthL = evtMapL->size(); 
+    } 
+    catch (...) { G4cerr << "EXCEPTION - DETECTORSL - HELP" << G4endl; }
+    std::cout << "LENGTHL" << lengthL <<std::endl;
+    for (G4int i = 0; i < lengthL; i++) 
+    {
+   	  hit = (B3Hit*) &(evtMapL->at(i));
+    	G4ThreeVector pos = (hit->GetPos());
+	    //G4int prmE = (G4int) analysisManager->GetH2(4)->bin_entries((pos.x()),(pos.y()));
+	    //G4cout<< "LIT" << prmE <<G4endl;
+	    analysisManager->FillH2(4, (pos.x()), (pos.y()), 1 );
+      G4cout << "FilledL" << G4endl;
+	    //prmE = (G4int) analysisManager->GetH2(4)->bin_entries((pos.x()),(pos.y()));
+	    //G4cout<< "LIT" << prmE <<G4endl;
+    }
+  }
+  
+  if(mapR)
+  {
+    try
+    { 
+      evtMapR =  (std::vector<B3Hit>*) (HCmapR->GetVector());
+      lengthR = evtMapR->size(); 
+    } 
+    catch (...) { G4cerr << "EXCEPTION - DETECTORSR - HELP" << G4endl; }
+    std::cout << "LENGTHR" << lengthR << std::endl;
+    for (G4int i = 0; i < 12; i++) 
+    {
+   	  hit = (B3Hit*) &(evtMapR->at(i));
+    	G4ThreeVector pos = (hit->GetPos());
+	    //G4int prmE = (G4int) analysisManager->GetH2(4)->bin_entries((pos.x()),(pos.y()));
+	    //G4cout<< "LIT" << prmE <<G4endl;
+	    //analysisManager->FillH2(4, (pos.x()), (pos.y()), 1 );
+      //G4cout << "FilledR" << G4endl;
+	    //prmE = (G4int) analysisManager->GetH2(4)->bin_entries((pos.x()),(pos.y()));
+	    //G4cout<< "LIT" << prmE <<G4endl;
+    }
+  
+  }
+
+
+
+
+
+
+
 /*
   for (itr = evtMap->GetMap()->begin(); itr != evtMap->GetMap()->end(); itr++) {
     //G4int copyNb  = (itr->first);
@@ -145,24 +271,10 @@ void B3aEventAction::EndOfEventAction(const G4Event* evt )
 	analysisManager->FillH1(6, *(itr->second));
   }
   // ------------------------------------------------------------------------------------------------
-*/
-  //Dose deposit in patient
-  //
-  G4double dose = 0.;
-     
-  evtMap = (G4THitsMap<G4double>*)(HCE->GetHC(fCollID_patient));
-               
-  for (itr = evtMap->GetMap()->begin(); itr != evtMap->GetMap()->end(); itr++) {
-    ///G4int copyNb  = (itr->first);
-    dose = *(itr->second);
-    *(itr->second) = dose/gray; //MODIFIED TO CONVERT UNITS
-	analysisManager->FillH1(7, *(itr->second));
-  }
-  if (dose > 0.) fRunAction->SumDose(dose);
 // ------------------------------------------------------------------------------------------------
   //
   //analysisManager->FillH1(1, fTotalEnergyDeposit/MeV);
-
+*/
 }  
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

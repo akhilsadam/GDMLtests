@@ -52,6 +52,9 @@ class B3aRunAction : public G4UserRunAction
     void CountEvent()           { fGoodEvents += 1; };
     void SumDose(G4double dose) { fSumDose += dose; };  
 
+    G4int nevents;
+    inline G4int GetNevents() { return nevents;}
+
 private:
     G4Accumulable<G4int>    fGoodEvents;
     G4Accumulable<G4double> fSumDose;  

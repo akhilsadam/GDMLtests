@@ -45,7 +45,6 @@
 //#include "B3aHistoManager.cc" ///  NEED TO FIX -----
 //#include "B3SteppingAction.cc" ///  NEED TO FIX -----
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
 B3aRunAction::B3aRunAction(G4VUserDetectorConstruction* patient)
  : G4UserRunAction(),
    fGoodEvents(0),
@@ -84,6 +83,7 @@ B3aRunAction::~B3aRunAction()
 
 void B3aRunAction::BeginOfRunAction(const G4Run* run)
 { 
+  nevents = (G4int) (run->GetNumberOfEventToBeProcessed());
 
   G4cout << "### Run " << run->GetRunID() << " start." << G4endl;
   
@@ -145,6 +145,17 @@ void B3aRunAction::EndOfRunAction(const G4Run* run)
      << "--------------------End of Global Run-----------------------"
      << G4endl
      << "  The run was " << nofEvents << " events ";
+
+    /*G4int nDy = 103;
+    G4double scale = 1/nevents;
+    for(int y = 0; y<(nDy); y++)
+    {
+      analysisManager->GetH1(8)->multiply(scale);
+      analysisManager->GetH1(9)->multiply(scale);
+      analysisManager->GetH1(10)->multiply(scale);
+      analysisManager->GetH1(11)->multiply(scale);
+    }*/
+
   }
   else
   {

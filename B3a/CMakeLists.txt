@@ -24,7 +24,7 @@ include(${Geant4_USE_FILE})
 include_directories(${PROJECT_SOURCE_DIR}/include)
 include_directories(/home/mitt-unix/Desktop/Geant4/geant4-10.6.0/source/persistency/gdml/include)
 
-set(CMAKE_CXX_FLAGS "-g")
+set(CMAKE_CXX_FLAGS "-g -O0")
 
 #----------------------------------------------------------------------------
 # Locate sources and headers for this project

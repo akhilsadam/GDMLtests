@@ -70,81 +70,116 @@ B3SteppingAction::~B3SteppingAction()
 
 void B3SteppingAction::UserSteppingAction(const G4Step* step)
 {
-std::lock(foo2,barL2);
-G4double edep = (step->GetTotalEnergyDeposit())/keV;
+ 	std::lock(foo2,barL2);
+ 	G4double edep = (step->GetTotalEnergyDeposit())/keV;
 
- G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();     
+ 	G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();     
 
- //longitudinal profile of deposited energy
- //randomize point of energy deposotion
- //
+ 	//longitudinal profile of deposited energy
+ 	//randomize point of energy deposotion
+	 //
 
- G4StepPoint* prePoint  = step->GetPreStepPoint();
- G4StepPoint* postPoint = step->GetPostStepPoint(); 
- G4ThreeVector P1 = prePoint ->GetPosition();
- G4ThreeVector P2 = postPoint->GetPosition();
- G4ThreeVector point = P1 + G4UniformRand()*(P2 - P1);
- if (step->GetTrack()->GetDefinition()->GetPDGCharge() == 0.) point = P2;
- G4double x = point.x();
- G4double y = point.y();
- G4double z = point.y();
- G4double xshifted = x + 0.5*(((DetectorConstruction*) fpatient)->GetWorldSizeXY());
- G4double yshifted = y + 0.5*(((DetectorConstruction*) fpatient)->GetWorldSizeXY());
- G4double zshifted = z + 0.5*(((DetectorConstruction*) fpatient)->GetWorldSizeZ());
+ 	G4StepPoint* prePoint  = step->GetPreStepPoint();
+ 	G4StepPoint* postPoint = step->GetPostStepPoint(); 
+ 	G4ThreeVector P1 = prePoint ->GetPosition();
+ 	G4ThreeVector P2 = postPoint->GetPosition();
+ 	G4ThreeVector point = P1 + G4UniformRand()*(P2 - P1);
+	if (step->GetTrack()->GetDefinition()->GetPDGCharge() == 0.) point = P2;
+	G4double x = P2.x();
+ 	G4double y = P2.y();
+ 	G4double z = P2.z();
+ 	G4double xr = point.x();
+ 	G4double yr = point.y();
+ 	G4double zr = point.z();
+ 	G4double xshifted = xr + 0.5*(((DetectorConstruction*) fpatient)->GetWorldSizeXY());
+ 	G4double yshifted = yr + 0.5*(((DetectorConstruction*) fpatient)->GetWorldSizeXY());
+ 	G4double zshifted = zr + 0.5*(((DetectorConstruction*) fpatient)->GetWorldSizeZ());
 
- analysisManager->FillH1(0, yshifted, edep);//y,edep
- analysisManager->FillH2(0, xshifted, yshifted, edep);
- analysisManager->FillH3(0, xshifted, yshifted, zshifted, edep);
+ 	analysisManager->FillH1(0, yshifted, edep);//y,edep
+ 	analysisManager->FillH2(0, xshifted, yshifted, edep);
+ 	analysisManager->FillH3(0, xshifted, yshifted, zshifted, edep);
 
+ 	G4double Ox = -2.58*cm;
+ 	G4double Oy = 4.83*cm;
+	G4double Dx = 7.74*cm;
+	G4double Dy = 10.32*cm;
 
-const std::vector< const G4Track* >* secondaries = step->GetSecondaryInCurrentStep();  
-const int size = secondaries->size();
-//std::vector< G4double> times = std::vector<G4double>();
-//std::vector< const G4DynamicParticle*>* secondparticles = new std::vector< const G4DynamicParticle* >(size);
+ 	const std::vector< const G4Track* >* secondaries = step->GetSecondaryInCurrentStep();  
+	 const int size = secondaries->size();
+ 	//std::vector< G4double> times = std::vector<G4double>();
+ 	//std::vector< const G4DynamicParticle*>* secondparticles = new std::vector< const G4DynamicParticle* >(size);
 
- //int nOfe = 0;
-const std::string title[] = { "e+","e-","opticalphoton","gamma","proton","alpha","Li6","Be7","C11","C12","N15","O15","O16"};
-const int titleSize = sizeof(title)/sizeof(title[0]);
+ 	//int nOfe = 0;
+ 	const std::string title[] = { "e+","e-","opticalphoton","gamma","proton","alpha","Li6","Be7","C11","C12","N15","O15","O16"};
+ 	const int titleSize = sizeof(title)/sizeof(title[0]);
 
-	std::string prim = step->GetTrack()->GetDynamicParticle()->GetParticleDefinition()->GetParticleName();
-	G4double Eprim = (step->GetTrack()->GetTotalEnergy()/keV);
-	G4double Esec = 0;
-	if(prim.compare("gamma")==0)
-	{
-		/*if(Eprim <=0)
-		{
-			Eprim = 0;
-			G4cout<<"//\\prim <=0"<<G4endl;
-		}*/
-		Esec += (edep);
+	G4double Esec = (edep);
 	
-	
-//ADD ENERGY TO TOTAL LIST
-//G4cout << "-- Primary: " << step->GetTrack()->GetDynamicParticle()->GetParticleDefinition()->GetParticleName()<<" || Ep: "<<(Etot)<<G4endl;
-//G4cout << " -- Edep: " <<(edep/MeV)<<G4endl;
-//times.push_back((timeL/ns));	
-//log the secondaries:
 
- 	for(int n = 0; n < size; n++)
+	for(int n = 0; n < size; n++)
 	{
 		G4Track* ptrG4Track = (G4Track*)(*secondaries)[n];
 		const G4DynamicParticle* pp = (const G4DynamicParticle*) ptrG4Track->GetDynamicParticle();
-	 	const G4ParticleDefinition* pd = (const G4ParticleDefinition*) pp->GetParticleDefinition();
+		const G4ParticleDefinition* pd = (const G4ParticleDefinition*) pp->GetParticleDefinition();
 		const std::string pdVar = pd->GetParticleName();
 	
-		/*G4cout << "-- Secondary: " << pdVar << " || Es: " << (pp->GetKineticEnergy()/MeV) << G4endl;
-		const G4VProcess* ps = prePoint->GetProcessDefinedStep();
-		if(ps)
-		{	
-			G4cout << "-- - Secondary process name: " << (prePoint->GetProcessDefinedStep()->GetProcessName()) << G4endl;	
-		}*/
-	
+		//G4cout << "-- Secondary: " << pdVar << " || Es: " << (pp->GetKineticEnergy()/MeV) << G4endl;
+		//-----------Histograms----------
+		if(pdVar.compare("opticalphoton")==0)
+		{
+			//G4cout << "Filled Photon Deposition" << G4endl;
+			analysisManager->FillH1(8, (x-Ox), 1);
+			analysisManager->FillH2(1, (x-Ox),(y-Oy), 1);
+			const G4VProcess* ps = postPoint->GetProcessDefinedStep();
+			if(ps)
+			{		
+				const std::string psN = ps->GetProcessName();
+				if(psN.compare("eIoni")==0)
+				{
+					//Electron Ionization (Photoelectric)
+					analysisManager->FillH2(7, (x-Ox),(y-Oy), 1);
+					analysisManager->FillH1(9, ((Dy/2) - (y-Oy)), 1);
+				}
+				else if(psN.compare("msc")==0)
+				{
+					//COMPTON
+					analysisManager->FillH2(8, (x-Ox),(y-Oy), 1);
+					analysisManager->FillH1(10, ((Dy/2) - (y-Oy)), 1);
+				}
+				else if(psN.compare("Cerenkov")==0)
+				{
+					//Cerenkov
+					analysisManager->FillH2(9, (x-Ox),(y-Oy), 1);
+					analysisManager->FillH1(11, ((Dy/2) - (y-Oy)), 1);
+				}
+				else if(psN.compare("eBrem")==0)
+				{
+					//Electron Braking radiation
+					analysisManager->FillH2(10, (x-Ox),(y-Oy), 1);
+					analysisManager->FillH1(12, ((Dy/2) - (y-Oy)), 1);
+				}
+				else if(psN.compare("Transportation")==0)
+				{
+					//motion - do nothing - un-double-count
+					analysisManager->FillH1(8, (x-Ox), -1);
+					analysisManager->FillH2(1, (x-Ox),(y-Oy), -1);
+				}
+				else
+				{
+					G4cout << psN << " not accounted for" << G4endl;
+				}
+				
+			}
+		}
+		//------------------------------
+
+
 		Esec += (pp->GetKineticEnergy()/keV);
 	
 		bool filled = false;
 		for(int i = 0; i < titleSize; i++)
 		{
-        	   //G4cout << pdVar << " " << title[i] << " " << titleSize << G4endl;
+			//G4cout << pdVar << " " << title[i] << " " << titleSize << G4endl;
 			if(pdVar.compare(title[i])==0)
 			{
 				filled = true;
@@ -164,24 +199,43 @@ const int titleSize = sizeof(title)/sizeof(title[0]);
 		}
 
 	}
-	//G4cout << "/|\\--- Total (should equal the previous primary): " << (Etot) <<G4endl;
+
+
+	std::string prim = step->GetTrack()->GetDynamicParticle()->GetParticleDefinition()->GetParticleName();
+	G4double Eprim = (step->GetTrack()->GetTotalEnergy()/keV); 
+	if(prim.compare("gamma")==0)
+	{
+		/*if(Eprim <=0)
+		{
+			Eprim = 0;
+			G4cout<<"//\\prim <=0"<<G4endl;
+		}*/
+		//G4cout << "/|\\--- Total (should equal the previous primary): " << (Etot) <<G4endl;
 		analysisManager->FillH1(7, (id), (Eprim+Esec-lastEnergy));
 		lastEnergy = Eprim;
 		id += 1;
 	}
+
 	 //example of saving random number seed of this event, under condition
 	 //// if (condition) G4RunManager::GetRunManager()->rndmSaveThisEvent();  
 
-	G4double Ox = -2.58*cm;
-	G4double Oy = 4.83*cm;
-
+	//-----------Histograms----------
 	G4String vol = prePoint->GetTouchableHandle()->GetVolume()->GetLogicalVolume()->GetName();
-	if((vol.compare("detVOL")==0)&&(prePoint->GetStepStatus() == fGeomBoundary))
+	if (prePoint->GetStepStatus() == fGeomBoundary)
 	{
-		G4cout << "Filled Hist" << G4endl;
-		analysisManager->FillH2(1, (x-Ox), (y-Oy), 1);
+		if(vol.compare("detVOLL")==0)
+		{
+			G4cout << "Filled Photon Left End Counts" << G4endl;
+			analysisManager->FillH2(2, (x-Ox), (y-Oy), 1);
+			analysisManager->FillH2(4, (x-Ox), (y-Oy), 1);
+		}
+		if (vol.compare("detVOLR")==0)
+		{
+			G4cout << "Filled Photon Right End Counts" << G4endl;
+			analysisManager->FillH2(3, (x-Ox), (y-Oy), 1);
+			analysisManager->FillH2(5, (x-Ox), (y-Oy), 1);
+		}
 	}
-
 
 	foo2.unlock();
 	barL2.unlock();

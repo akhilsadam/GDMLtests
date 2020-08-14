@@ -50,7 +50,7 @@
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-B3PhysicsListMessenger::B3PhysicsListMessenger(B3PhysicsList* pPhys)
+inline B3PhysicsListMessenger::B3PhysicsListMessenger(B3PhysicsList* pPhys)
 :G4UImessenger(), fPhysicsList(pPhys)
 {   
   fPListCmd = new G4UIcmdWithAString("/testhadr/Physics",this);
@@ -65,7 +65,7 @@ B3PhysicsListMessenger::B3PhysicsListMessenger(B3PhysicsList* pPhys)
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-B3PhysicsListMessenger::~B3PhysicsListMessenger()
+inline B3PhysicsListMessenger::~B3PhysicsListMessenger()
 {
   delete fPListCmd;
   delete fListCmd;
@@ -73,7 +73,7 @@ B3PhysicsListMessenger::~B3PhysicsListMessenger()
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void B3PhysicsListMessenger::SetNewValue(G4UIcommand* command, G4String newValue)
+inline void B3PhysicsListMessenger::SetNewValue(G4UIcommand* command, G4String newValue)
 {
   if( command == fPListCmd ) {
     if(fPhysicsList) {

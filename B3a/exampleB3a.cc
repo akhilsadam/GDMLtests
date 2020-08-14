@@ -166,7 +166,7 @@ int main(int argc,char** argv)
   // in the main() program !
 
   delete visManager;
-  delete runManager;
+  delete runManager;  //workaround for segfault here!
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo.....

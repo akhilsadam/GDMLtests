@@ -17,6 +17,7 @@
 #include "G4VPrimitiveScorer.hh"
 #include "G4PSEnergyDeposit.hh"
 #include "G4PSDoseDeposit.hh"
+#include "G4PSNofCollision.hh"
 #include "G4VisAttributes.hh"
 #include "G4PhysicalConstants.hh"
 #include "G4SystemOfUnits.hh"
@@ -180,12 +181,14 @@ class GDMLDetectorConstruction : public DetectorConstruction
 
 	G4double dX = 7.74*cm; G4double dY = 10.32*cm; G4double dZ = 1*cm;
 	G4Box* det = new G4Box("det", dX/2, dY/2, dZ/2);
-	G4LogicalVolume* logicDet = new G4LogicalVolume(det,EJ208,"detVOL");
-	logicDet->SetVisAttributes (det_col);
+	G4LogicalVolume* logicDetR = new G4LogicalVolume(det,EJ208,"detVOLR");
+	G4LogicalVolume* logicDetL = new G4LogicalVolume(det,EJ208,"detVOLL");
+	logicDetR->SetVisAttributes (det_col);
+	logicDetL->SetVisAttributes (det_col);
     	G4ThreeVector pos = G4ThreeVector(-2.58*cm,4.83*cm,-0.5*cm);
-	G4ThreeVector pos2 = G4ThreeVector(-2.58*cm,4.83*cm,200.5*cm);
-	new G4PVPlacement(0,pos,"det",logicDet,World, false,0,fCheckOverlaps);       // checking overlaps 
-	new G4PVPlacement(0,pos2,"det",logicDet,World, false,1,fCheckOverlaps); 
+	G4ThreeVector pos2 = G4ThreeVector(-2.58*cm,4.83*cm,100.5*cm);
+	new G4PVPlacement(0,pos,"det",logicDetR,World, false,0,fCheckOverlaps);       // checking overlaps 
+	new G4PVPlacement(0,pos2,"det",logicDetL,World, false,0,fCheckOverlaps); 
 	/*G4Tubs* testP = new G4Tubs("Crystal",0*cm,10*cm, 5*cm,0,2*pi);
 	G4LogicalVolume* lc = new G4LogicalVolume(testP,EJ208,"Crystal");
 	G4ThreeVector pos = G4ThreeVector(0*cm,0*cm,0*cm);
@@ -207,18 +210,19 @@ class GDMLDetectorConstruction : public DetectorConstruction
   public:
     void ConstructSDandField()
     {
-        G4MultiFunctionalDetector* patient = new G4MultiFunctionalDetector("patient");
-        G4SDManager::GetSDMpointer()->AddNewDetector(patient);
-        G4VPrimitiveScorer* sec1 = new G4PSDoseDeposit("dose");
-        patient->RegisterPrimitive(sec1);
+		G4SDParticleFilter* photonFilter = new G4SDParticleFilter("photonFilter");
+  		photonFilter->add("opticalphoton");
+        G4MultiFunctionalDetector* detL = new G4MultiFunctionalDetector("detL");
+		G4MultiFunctionalDetector* detR = new G4MultiFunctionalDetector("detR");
+        G4SDManager::GetSDMpointer()->AddNewDetector(detL);
+		G4SDManager::GetSDMpointer()->AddNewDetector(detR);
+        G4VPrimitiveScorer* npho = new G4PSNofCollision("nPho",0);
+		npho->SetFilter(photonFilter);
+        detL->RegisterPrimitive(npho);
+		detR->RegisterPrimitive(npho);
 
-        /*for (G4int i = 0; i < 109; i++) {
-          char a[100];
-          sprintf(a,"%d", i);
-          strcat(a,"_EmphaticLV");
-          SetSensitiveDetector(a,patient);
-        }*/
-        SetSensitiveDetector("world_volume",patient);
+        SetSensitiveDetector("detVOLL",detL);
+		SetSensitiveDetector("detVOLR",detR);
 
     }
 
