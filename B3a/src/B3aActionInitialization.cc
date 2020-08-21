@@ -26,7 +26,7 @@
 //
 /// \file B3aActionInitialization.cc
 /// \brief Implementation of the B3aActionInitialization class
-
+#include "Version.hh"
 #include "B3aActionInitialization.hh"
 #include "B3aRunAction.hh"
 #include "B3aEventAction.hh"

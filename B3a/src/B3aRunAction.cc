@@ -26,7 +26,7 @@
 //
 /// \file B3aRunAction.cc
 /// \brief Implementation of the B3aRunAction class
-
+#include "Version.hh"
 #include "B3aRunAction.hh"
 #include "B3PrimaryGeneratorAction.hh"
 
@@ -159,11 +159,20 @@ void B3aRunAction::EndOfRunAction(const G4Run* run)
   }
   else
   {
+    #ifdef SingleStrip
+    G4cout
+     << G4endl
+     << "--------------------End of Local Run------------------------"
+     << G4endl
+     << "  The run was " << (nofEvents*100) << " "<< partName;
+    #endif
+    #ifdef MultipleStripCell
     G4cout
      << G4endl
      << "--------------------End of Local Run------------------------"
      << G4endl
      << "  The run was " << nofEvents << " "<< partName;
+    #endif
   }      
   G4cout
      << "; Nb of 'good' e+ annihilations: " << fGoodEvents.GetValue()  << G4endl

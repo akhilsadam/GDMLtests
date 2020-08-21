@@ -32,7 +32,7 @@
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
+#include "Version.hh"
 #include "B3SteppingAction.hh"
 #include "B3aEventAction.hh"
 #include "G4SteppingManager.hh"
@@ -224,16 +224,20 @@ void B3SteppingAction::UserSteppingAction(const G4Step* step)
 	if (prePoint->GetStepStatus() == fGeomBoundary)
 	{
 		if(vol.compare("detVOLL")==0)
-		{
+		{	
+			G4double lambdaP = (h*c)/(Eprim*1000*nanop);
 			G4cout << "Filled Photon Left End Counts" << G4endl;
 			analysisManager->FillH2(2, (x-Ox), (y-Oy), 1);
 			analysisManager->FillH2(4, (x-Ox), (y-Oy), 1);
+			analysisManager->FillH1(17,  lambdaP, 1);
 		}
-		if (vol.compare("detVOLR")==0)
+		else if (vol.compare("detVOLR")==0)
 		{
+			G4double lambdaP = (h*c)/(Eprim*1000*nanop);
 			G4cout << "Filled Photon Right End Counts" << G4endl;
 			analysisManager->FillH2(3, (x-Ox), (y-Oy), 1);
 			analysisManager->FillH2(5, (x-Ox), (y-Oy), 1);
+			analysisManager->FillH1(18,  lambdaP, 1);
 		}
 	}
 

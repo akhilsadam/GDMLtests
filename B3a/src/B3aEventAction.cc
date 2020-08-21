@@ -26,7 +26,7 @@
 //
 /// \file B3aEventAction.cc
 /// \brief Implementation of the B3aEventAction class
-
+#include "Version.hh"
 #include "B3aEventAction.hh"
 #include "B3aRunAction.hh"
 #include "B3Analysis.hh"

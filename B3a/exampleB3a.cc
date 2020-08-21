@@ -35,6 +35,7 @@
 #include "G4RunManager.hh"
 #endif
 
+#include "Version.hh"
 #include "G4UImanager.hh"
 //#include "G4UIGAG.hh"
 #include "G4VisExecutive.hh"
@@ -103,8 +104,11 @@ int main(int argc,char** argv)
   G4VModularPhysicsList* physicsList = new FTFP_BERT;
   physicsList->ReplacePhysics(new G4EmStandardPhysics_option4());
   G4OpticalPhysics* opticalPhysics = new G4OpticalPhysics();
-
-  opticalPhysics->SetScintillationYieldFactor(1.);
+  #ifdef ScintillationDisable
+  opticalPhysics->SetScintillationYieldFactor(0.);
+  #else
+  opticalPhysics->SetScintillationYieldFactor(1.0);
+  #endif
   opticalPhysics->SetScintillationExcitationRatio(0.);
 
   opticalPhysics->SetTrackSecondariesFirst(kCerenkov,true);
@@ -151,6 +155,11 @@ int main(int argc,char** argv)
   else {
     // interactive mode
     UImanager->ApplyCommand("/control/execute init_vis.mac");
+    UImanager->ApplyCommand("/vis/viewer/set/viewpointThetaPhi 20 20");
+    #ifdef SingleStrip
+    UImanager->ApplyCommand("/vis/filtering/trajectories/create/particleFilter");
+    UImanager->ApplyCommand("/vis/filtering/trajectories/particleFilter-0/add opticalphoton");
+    #endif
     ui->SessionStart();
     delete ui;
   }

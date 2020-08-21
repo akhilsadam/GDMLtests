@@ -114,7 +114,9 @@ void HistoManager::Book()
 "Photon Process (eIoni)-Photoelectric 1D (n/mm x,y)",
 "Photon Process (msc)-Compton 1D (n/mm x,y)",
 "Photon Process (Cerenkov) 1D  (n/mm x,y)",
-"Photon Process (eBrem) 1D (n/mm x,y)"};
+"Photon Process (eBrem) 1D (n/mm x,y)",
+"Photon-Deposition-Spectrum 1D LEFT (n/nm x)",
+"Photon-Deposition-Spectrum 1D RIGHT (n/nm x)",};
 
    const std::string second[] = { "positron","electron","opticalphoton","gammas","proton","alpha","Li6","Be7","C11","C12","N15","O15","O16"};
    const int secondSize = sizeof(second)/sizeof(second[0]);
@@ -192,6 +194,7 @@ G4int ny = 16; //4x4
 
 G4int nDx = 10;
 G4int nDy = 256;
+G4int nL = 100;
 
 
 ih5 = analysisManager->CreateH1(title[10], title[10], (nx*100), (-Dx/2), (Dx/2));
@@ -247,6 +250,13 @@ ih5 = analysisManager->CreateH1(title[28], title[28], nDy, 0, Dy); //1d 15
     	analysisManager->SetH1Activation(ih5, true);
 ih5 = analysisManager->CreateH1(title[29], title[29], nDy, 0, Dy); //1d 16
     	analysisManager->SetH1Activation(ih5, true);
+
+
+ih5 = analysisManager->CreateH1(title[30], title[30], nL, Lmin, Lmax); //1d 17
+    	analysisManager->SetH1Activation(ih5, true);
+ih5 = analysisManager->CreateH1(title[31], title[31], nL, Lmin, Lmax); //1d 18
+    	analysisManager->SetH1Activation(ih5, true);
+
 /*
   // Create all histograms as inactivated 
   // as we have not yet set nbins, vmin, vmax

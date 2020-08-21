@@ -8,3 +8,6 @@ add_subdirectory(B3a)
 add_subdirectory(B3b)
 
 add_custom_target(B3 DEPENDS exampleB3a exampleB3b)
+
+
+set(CMAKE_CXX_FLAGS "-g -O0")
