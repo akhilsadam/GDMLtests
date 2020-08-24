@@ -107,16 +107,21 @@ void HistoManager::Book()
 "Photon Process (Cerenkov) 2D (n/mm x,y)",
 "Photon Process (eBrem) 2D (n/mm x,y)",
 "# of photons at Left vs Right dets. for LIT strips (n/mm x,y)",
-"Current Process (eIoni)-Photoelectric 1D (n/mm x,y)",
-"Current Process (msc)-Compton 1D (n/mm x,y)",
-"Current Process (Cerenkov) 1D  (n/mm x,y)",
-"Current Process (eBrem) 1D (n/mm x,y)",
-"Photon Process (eIoni)-Photoelectric 1D (n/mm x,y)",
-"Photon Process (msc)-Compton 1D (n/mm x,y)",
-"Photon Process (Cerenkov) 1D  (n/mm x,y)",
-"Photon Process (eBrem) 1D (n/mm x,y)",
+"Current Created Photon Count",
+"Interacting Gamma Percent",
+"(NA)Current Process (Cerenkov) 1D  (n/mm x,y)",
+"(NA)Current Process (eBrem) 1D (n/mm x,y)",
+"(NA)Photon Process (eIoni)-Photoelectric 1D (n/mm x,y)",
+"(NA)Photon Process (msc)-Compton 1D (n/mm x,y)",
+"(NA)Photon Process (Cerenkov) 1D  (n/mm x,y)",
+"(NA)Photon Process (eBrem) 1D (n/mm x,y)",
 "Photon-Deposition-Spectrum 1D LEFT (n/nm x)",
-"Photon-Deposition-Spectrum 1D RIGHT (n/nm x)",};
+"Photon-Deposition-Spectrum 1D RIGHT (n/nm x)",
+"Toal Photons Detected for 2D LEFT (n/mm x,y)",
+"Total Photons Detected for 2D RIGHT (n/mm x,y)",
+"Gamma Interaction Position (n/mm x,y)",
+"Gamma PhotoElectric Position (n/mm x,y)",
+"Gamma Compton Position (n/mm x,y)"};
 
    const std::string second[] = { "positron","electron","opticalphoton","gammas","proton","alpha","Li6","Be7","C11","C12","N15","O15","O16"};
    const int secondSize = sizeof(second)/sizeof(second[0]);
@@ -190,7 +195,7 @@ G4double Oy = 4.83*cm;
 G4double Dx = 7.74*cm;
 G4double Dy = 10.32*cm;
 G4int nx = 3;
-G4int ny = 16; //4x4
+G4int ny = 4; //4x4
 
 G4int nDx = 10;
 G4int nDy = 256;
@@ -233,9 +238,9 @@ ih5 = analysisManager->CreateH2(title[20], title[20], nx, (-Dx/2), (Dx/2), ny,(-
 ih5 = analysisManager->CreateH2(title[21], title[21], nDx, 0, nDx, nDx,0,nDx); //2d 11
     analysisManager->SetH2Activation(ih5, true);
 
-ih5 = analysisManager->CreateH1(title[22], title[22], nDy, 0, Dy); //1d 9
+ih5 = analysisManager->CreateH1(title[22], title[22], 1, 0, 1); //1d 9
     	analysisManager->SetH1Activation(ih5, true);
-ih5 = analysisManager->CreateH1(title[23], title[23], nDy, 0, Dy); //1d 10
+ih5 = analysisManager->CreateH1(title[23], title[23], 1, 0, 1); //1d 10
     	analysisManager->SetH1Activation(ih5, true);
 ih5 = analysisManager->CreateH1(title[24], title[24], nDy, 0, Dy); //1d 11
     	analysisManager->SetH1Activation(ih5, true);
@@ -256,6 +261,17 @@ ih5 = analysisManager->CreateH1(title[30], title[30], nL, Lmin, Lmax); //1d 17
     	analysisManager->SetH1Activation(ih5, true);
 ih5 = analysisManager->CreateH1(title[31], title[31], nL, Lmin, Lmax); //1d 18
     	analysisManager->SetH1Activation(ih5, true);
+
+ih5 = analysisManager->CreateH2(title[32], title[32], nx, 0, nx, ny, 0, ny); //2d 12
+    analysisManager->SetH2Activation(ih5, true);
+ih5 = analysisManager->CreateH2(title[33], title[33], nx, 0, nx, ny, 0, ny); //2d 13
+    analysisManager->SetH2Activation(ih5, true);
+    ih5 = analysisManager->CreateH2(title[34], title[34], nx, (-Dx/2), (Dx/2), ny,(-Dy/2),(Dy/2)); //2d 14
+    analysisManager->SetH2Activation(ih5, true);
+    ih5 = analysisManager->CreateH2(title[35], title[35], nx, (-Dx/2), (Dx/2), ny,(-Dy/2),(Dy/2)); //2d 15
+    analysisManager->SetH2Activation(ih5, true);
+    ih5 = analysisManager->CreateH2(title[36], title[36], nx, (-Dx/2), (Dx/2), ny,(-Dy/2),(Dy/2)); //2d 16
+    analysisManager->SetH2Activation(ih5, true);
 
 /*
   // Create all histograms as inactivated 

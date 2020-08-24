@@ -81,7 +81,7 @@ void B3aEventAction::EndOfEventAction(const G4Event* evt )
 {
   G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();
   G4int nx = 3;
-  G4int ny = 16;
+  G4int ny = 4;
   G4double Dx = 7.74*cm;
   G4double Dy = 10.32*cm;
   G4int entry;
@@ -100,17 +100,20 @@ void B3aEventAction::EndOfEventAction(const G4Event* evt )
       {
         //G4cout << " Filling " << G4endl;
         analysisManager->FillH2(6, (x),(y), (1.0/nevents) );
+        analysisManager->FillH2(12, (x),(y), (left) );
+        analysisManager->FillH2(13, (x),(y), (right) );
         analysisManager->FillH2(11, (right),(left), (1) ); //P@1 VS P@2
       }
     }
   }
+  G4int photons = (G4int) analysisManager->GetH1(9)->bin_entries(0);
+  if(photons>0)
+  {
+    analysisManager->FillH1(10, 0.5, (1.0/nevents) );
+  }
   analysisManager->GetH2(4)->reset();
   analysisManager->GetH2(5)->reset();
-
-
-  
-
-
+  analysisManager->GetH1(9)->reset();
 
 
 

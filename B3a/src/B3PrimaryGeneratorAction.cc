@@ -56,7 +56,7 @@ B3PrimaryGeneratorAction::B3PrimaryGeneratorAction()
   fParticleGun->SetParticleDefinition(particle);
   fParticleGun->SetParticlePosition(G4ThreeVector(0.,0.,0.));
   fParticleGun->SetParticleEnergy(511*keV);  //SetParticleEnergy(1*eV); between 70-250 MeV   
-  fParticleGun->SetParticleMomentumDirection(G4ThreeVector(0*(G4UniformRand()-0.5),-1.,0*(G4UniformRand()-0.5)));
+  fParticleGun->SetParticleMomentumDirection(G4ThreeVector(-1,0,0));
   #endif
 }
 
@@ -99,7 +99,7 @@ if (particle == G4ChargedGeantino::ChargedGeantino()) {
   //create vertex
   //
   #ifdef MultipleStripCell
-  G4double x0  = -2.58*cm, y0  = 30*cm, z0  = 50*cm;
+  G4double x0  = 30*cm, y0  = (4.83+(2.56/2))*cm, z0  = length_D/2;
   fParticleGun->SetParticlePosition(G4ThreeVector(x0,y0,z0));
   fParticleGun->GeneratePrimaryVertex(anEvent);
   #endif
@@ -118,12 +118,11 @@ if (particle == G4ChargedGeantino::ChargedGeantino()) {
     fParticleGun->SetParticlePolarization(G4RandomDirection().unit());
     #ifdef SSRefractionTest
       G4double y = tan(G4UniformRand()*pi/2);
-      fParticleGun->SetParticlePosition(G4ThreeVector(x0,y0,nanop*m));
+      fParticleGun->SetParticlePosition(G4ThreeVector(0,0,0.001*m));
       fParticleGun->SetParticleMomentumDirection(G4ThreeVector(0,y,-1).unit());
-    #elif  SSReflectionTest 
+    #elif  SSReflectionTest true
       fParticleGun->SetParticlePosition(G4ThreeVector(x0,y0,z0));
-      fParticleGun->SetParticleMomentumDirection(G4ThreeVector(0,-1,160.4838).unit()); //0,-1,160.4838 for lower wall testing
-    #else
+      fParticleGun->SetParticleMomentumDirection(G4ThreeVector(0,-1,160.4838).unit()); //0,-1,160.4838 for lower wall testing on 100cm
       fParticleGun->SetParticlePosition(G4ThreeVector(x0,y0,z0));
       fParticleGun->SetParticleMomentumDirection(G4ThreeVector(0,0,1));
     #endif

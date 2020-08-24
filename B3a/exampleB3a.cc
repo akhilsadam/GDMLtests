@@ -155,10 +155,15 @@ int main(int argc,char** argv)
   else {
     // interactive mode
     UImanager->ApplyCommand("/control/execute init_vis.mac");
-    UImanager->ApplyCommand("/vis/viewer/set/viewpointThetaPhi 20 20");
+    #ifndef SSRefractionTest
+      UImanager->ApplyCommand("/vis/viewer/set/viewpointThetaPhi 20 20");
+    #else
+      UImanager->ApplyCommand("/vis/viewer/zoom 1024");
+      UImanager->ApplyCommand("/vis/viewer/set/viewpointThetaPhi 90 0");
+    #endif
     #ifdef SingleStrip
-    UImanager->ApplyCommand("/vis/filtering/trajectories/create/particleFilter");
-    UImanager->ApplyCommand("/vis/filtering/trajectories/particleFilter-0/add opticalphoton");
+      UImanager->ApplyCommand("/vis/filtering/trajectories/create/particleFilter");
+      UImanager->ApplyCommand("/vis/filtering/trajectories/particleFilter-0/add opticalphoton");
     #endif
     ui->SessionStart();
     delete ui;

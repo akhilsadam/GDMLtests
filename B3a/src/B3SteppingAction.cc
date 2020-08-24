@@ -114,7 +114,7 @@ void B3SteppingAction::UserSteppingAction(const G4Step* step)
  	const int titleSize = sizeof(title)/sizeof(title[0]);
 
 	G4double Esec = (edep);
-	
+	const G4VProcess* ps;
 
 	for(int n = 0; n < size; n++)
 	{
@@ -130,7 +130,8 @@ void B3SteppingAction::UserSteppingAction(const G4Step* step)
 			//G4cout << "Filled Photon Deposition" << G4endl;
 			analysisManager->FillH1(8, (x-Ox), 1);
 			analysisManager->FillH2(1, (x-Ox),(y-Oy), 1);
-			const G4VProcess* ps = postPoint->GetProcessDefinedStep();
+			analysisManager->FillH1(9, 0.5, 1);
+			ps = postPoint->GetProcessDefinedStep();
 			if(ps)
 			{		
 				const std::string psN = ps->GetProcessName();
@@ -138,25 +139,25 @@ void B3SteppingAction::UserSteppingAction(const G4Step* step)
 				{
 					//Electron Ionization (Photoelectric)
 					analysisManager->FillH2(7, (x-Ox),(y-Oy), 1);
-					analysisManager->FillH1(9, ((Dy/2) - (y-Oy)), 1);
+					
 				}
 				else if(psN.compare("msc")==0)
 				{
 					//COMPTON
 					analysisManager->FillH2(8, (x-Ox),(y-Oy), 1);
-					analysisManager->FillH1(10, ((Dy/2) - (y-Oy)), 1);
+					//analysisManager->FillH1(10, ((Dy/2) - (y-Oy)), 1);
 				}
 				else if(psN.compare("Cerenkov")==0)
 				{
 					//Cerenkov
 					analysisManager->FillH2(9, (x-Ox),(y-Oy), 1);
-					analysisManager->FillH1(11, ((Dy/2) - (y-Oy)), 1);
+					//analysisManager->FillH1(11, ((Dy/2) - (y-Oy)), 1);
 				}
 				else if(psN.compare("eBrem")==0)
 				{
 					//Electron Braking radiation
 					analysisManager->FillH2(10, (x-Ox),(y-Oy), 1);
-					analysisManager->FillH1(12, ((Dy/2) - (y-Oy)), 1);
+					//analysisManager->FillH1(12, ((Dy/2) - (y-Oy)), 1);
 				}
 				else if(psN.compare("Transportation")==0)
 				{
@@ -168,7 +169,7 @@ void B3SteppingAction::UserSteppingAction(const G4Step* step)
 				{
 					G4cout << psN << " not accounted for" << G4endl;
 				}
-				
+
 			}
 		}
 		//------------------------------
@@ -214,6 +215,31 @@ void B3SteppingAction::UserSteppingAction(const G4Step* step)
 		analysisManager->FillH1(7, (id), (Eprim+Esec-lastEnergy));
 		lastEnergy = Eprim;
 		id += 1;
+		if(size>0)
+		{
+			ps = postPoint->GetProcessDefinedStep();
+			if(ps)
+			{
+				G4String psNm = ps->GetProcessName();
+				//G4cout<<(ps->GetProcessName())<<G4endl;
+				analysisManager->FillH2(14, (x-Ox),(y-Oy), 1);
+				if(psNm.compare("phot")==0)
+				{
+					analysisManager->FillH2(15, (x-Ox),(y-Oy), 1);
+					
+				}
+				else if(psNm.compare("compt")==0)
+				{
+					//COMPTON
+					analysisManager->FillH2(16, (x-Ox),(y-Oy), 1);
+				}
+				else
+				{
+					G4cout << psNm << " not accounted for" << G4endl;
+				}
+
+			}
+		}
 	}
 
 	 //example of saving random number seed of this event, under condition
@@ -226,7 +252,7 @@ void B3SteppingAction::UserSteppingAction(const G4Step* step)
 		if(vol.compare("detVOLL")==0)
 		{	
 			G4double lambdaP = (h*c)/(Eprim*1000*nanop);
-			G4cout << "Filled Photon Left End Counts" << G4endl;
+			//G4cout << "Filled Photon Left End Counts" << G4endl;
 			analysisManager->FillH2(2, (x-Ox), (y-Oy), 1);
 			analysisManager->FillH2(4, (x-Ox), (y-Oy), 1);
 			analysisManager->FillH1(17,  lambdaP, 1);
@@ -234,7 +260,7 @@ void B3SteppingAction::UserSteppingAction(const G4Step* step)
 		else if (vol.compare("detVOLR")==0)
 		{
 			G4double lambdaP = (h*c)/(Eprim*1000*nanop);
-			G4cout << "Filled Photon Right End Counts" << G4endl;
+			//G4cout << "Filled Photon Right End Counts" << G4endl;
 			analysisManager->FillH2(3, (x-Ox), (y-Oy), 1);
 			analysisManager->FillH2(5, (x-Ox), (y-Oy), 1);
 			analysisManager->FillH1(18,  lambdaP, 1);
