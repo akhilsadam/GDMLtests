@@ -99,7 +99,7 @@ void B3aEventAction::EndOfEventAction(const G4Event* evt )
       if ((entry > 0) && (nevents !=0))
       {
         //G4cout << " Filling " << G4endl;
-        analysisManager->FillH2(6, (x),(y), (1.0/nevents) );
+        analysisManager->FillH2(6, (x),(y), (1.0) );
         analysisManager->FillH2(12, (x),(y), (left) );
         analysisManager->FillH2(13, (x),(y), (right) );
         analysisManager->FillH2(11, (right),(left), (1) ); //P@1 VS P@2
@@ -111,6 +111,28 @@ void B3aEventAction::EndOfEventAction(const G4Event* evt )
   {
     analysisManager->FillH1(10, 0.5, (1.0/nevents) );
   }
+
+  //INDIVIDUAL
+  G4int id = 19;
+  for(int i = 0; i<nx; i++)
+  {
+    for(int j = 0; j<ny; j++)
+    {
+      left = (G4int) analysisManager->GetH2(4)->bin_entries((i),(j));
+      right = (G4int) analysisManager->GetH2(5)->bin_entries((i),(j));
+      entry = left + right;
+      if(entry>0)
+      {
+        analysisManager->FillH1(id, (entry) );
+      }
+
+      id+=5;
+
+    }  
+  }
+
+
+
   analysisManager->GetH2(4)->reset();
   analysisManager->GetH2(5)->reset();
   analysisManager->GetH1(9)->reset();

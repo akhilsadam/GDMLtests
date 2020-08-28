@@ -117,8 +117,8 @@ void HistoManager::Book()
 "(NA)Photon Process (eBrem) 1D (n/mm x,y)",
 "Photon-Deposition-Spectrum 1D LEFT (n/nm x)",
 "Photon-Deposition-Spectrum 1D RIGHT (n/nm x)",
-"Toal Photons Detected for 2D LEFT (n/mm x,y)",
-"Total Photons Detected for 2D RIGHT (n/mm x,y)",
+"Average Photons Detected per interacted gamma for 2D LEFT (n/mm x,y)",
+"Average Photons Detected per interacted gamma for 2D RIGHT (n/mm x,y)",
 "Gamma Interaction Position (n/mm x,y)",
 "Gamma PhotoElectric Position (n/mm x,y)",
 "Gamma Compton Position (n/mm x,y)"};
@@ -272,6 +272,46 @@ ih5 = analysisManager->CreateH2(title[33], title[33], nx, 0, nx, ny, 0, ny); //2
     analysisManager->SetH2Activation(ih5, true);
     ih5 = analysisManager->CreateH2(title[36], title[36], nx, (-Dx/2), (Dx/2), ny,(-Dy/2),(Dy/2)); //2d 16
     analysisManager->SetH2Activation(ih5, true);
+
+////////// Individual HISTOGRAMS ///////////////////////////////////////////////////////////////
+    G4int ni = 0; //(nmin)
+    G4int na = 30; //(nmax)
+    //.. 1D id starts from 19
+
+    G4String cell = "_Photon-Deposition per gamma (nOfPhotons)";
+    G4String name;
+    G4String compt;
+    G4String photo;
+    G4String ceren;
+    G4String brem ;
+ ///LEFT 
+ for(int i = 1; i<=nx; i++)
+ {
+    for(int j = 1; j<=ny; j++)
+    {
+        name = to_string(i)+to_string(j) + cell;
+            compt = name + " Compton";
+            photo = name + " Photoelectric";
+            ceren = name + " Cerenkov";
+            brem  = name + " Bremsstrahlung";
+        
+        ih5 = analysisManager->CreateH1(name, name, na, ni, na);
+    	analysisManager->SetH1Activation(ih5, true);
+        ih5 = analysisManager->CreateH1(compt, compt, na, ni, na);
+    	analysisManager->SetH1Activation(ih5, true);
+        ih5 = analysisManager->CreateH1(photo, photo, na, ni, na); 
+    	analysisManager->SetH1Activation(ih5, true);
+        ih5 = analysisManager->CreateH1(ceren, ceren, na, ni, na); 
+    	analysisManager->SetH1Activation(ih5, true);
+        ih5 = analysisManager->CreateH1(brem, brem, na, ni, na); 
+    	analysisManager->SetH1Activation(ih5, true);
+        //G4cout << "finished stringing" << G4endl;
+    }
+    
+ }
+ ///RIGHT
+
+
 
 /*
   // Create all histograms as inactivated 

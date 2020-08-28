@@ -117,7 +117,13 @@ void B3aRunAction::EndOfRunAction(const G4Run* run)
   // save histograms
   G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();
   if ( analysisManager->IsActive() ) {  
-    analysisManager->Write();
+    G4double interacted = (analysisManager->GetH1(10)->bin_entries(0));
+    G4cout << "INTERACTED " <<interacted <<G4endl;
+    analysisManager->GetH2(6)->multiply(1.0/interacted);
+    analysisManager->GetH2(12)->multiply(1.0/interacted);
+    analysisManager->GetH2(13)->multiply(1.0/interacted);
+    
+    analysisManager->Write();    
     analysisManager->CloseFile();
   }    
 

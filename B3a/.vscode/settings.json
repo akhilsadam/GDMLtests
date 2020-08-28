@@ -1,6 +1,37 @@
 {
     "files.associations": {
         "*.icc": "cpp",
-        "h1": "cpp"
+        "h1": "cpp",
+        "ntuple_binding": "cpp",
+        "ntuple_booking": "cpp",
+        "rcsv_ntuple": "cpp",
+        "base_leaf": "cpp",
+        "branch": "cpp",
+        "info": "cpp",
+        "iros": "cpp",
+        "ntuple": "cpp",
+        "tree": "cpp",
+        "field_desc": "cpp",
+        "wcsv_ntuple": "cpp",
+        "bufobj": "cpp",
+        "typeinfo": "cpp",
+        "directory": "cpp",
+        "file": "cpp",
+        "b2": "cpp",
+        "sprintf": "c",
+        "random": "c",
+        "ratio": "c",
+        "string_view": "c",
+        "array": "c",
+        "fsize": "c",
+        "img": "c",
+        "vec2": "c",
+        "vec3": "c",
+        "vec4": "c",
+        "buffer": "c",
+        "bmf": "c",
+        "group": "c",
+        "initializer_list": "c",
+        "utility": "c"
     }
 }
