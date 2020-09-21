@@ -88,22 +88,33 @@ void B3aEventAction::EndOfEventAction(const G4Event* evt )
   G4int left=0;
   G4int right=0;
   G4int nevents = fRunAction->GetNevents();
+
+  G4int scintiPhot=0;
+  G4int id = 23;
+
   for(int x = 0; x<(nx); x++)
   {
     for(int y = 0; y<(ny); y++)
     {
       left = (G4int) analysisManager->GetH2(4)->bin_entries((x),(y));
-      right = (G4int) analysisManager->GetH2(5)->bin_entries((x),(y));
-      entry = left + right;
-      //G4cout << "ENTRY: " << entry << G4endl;
-      if ((entry > 0) && (nevents !=0))
+      right = (G4int) analysisManager->GetH2(5)->bin_entries((x),(y)); //detectors
+      scintiPhot = (G4int) analysisManager->GetH2(17)->bin_entries((x),(y)); //scintillator
+      entry = left + right; //detectors
+      //G4cout << "ENTRY: " << entry << "X " << x << "Y " << y << G4endl;
+      if ((entry > 0) && (nevents !=0)) //detectors
       {
         //G4cout << " Filling " << G4endl;
         analysisManager->FillH2(6, (x),(y), (1.0) );
         analysisManager->FillH2(12, (x),(y), (left) );
         analysisManager->FillH2(13, (x),(y), (right) );
         analysisManager->FillH2(11, (right),(left), (1) ); //P@1 VS P@2
+        analysisManager->FillH1(id, entry); //(entry)
       }
+      if(scintiPhot>0) //scintillator
+      {
+        analysisManager->FillH1(id+5, (scintiPhot) );
+      }
+      id+=6;
     }
   }
   G4int photons = (G4int) analysisManager->GetH1(9)->bin_entries(0);
@@ -112,29 +123,10 @@ void B3aEventAction::EndOfEventAction(const G4Event* evt )
     analysisManager->FillH1(10, 0.5, (1.0/nevents) );
   }
 
-  //INDIVIDUAL
-  G4int id = 19;
-  for(int i = 0; i<nx; i++)
-  {
-    for(int j = 0; j<ny; j++)
-    {
-      left = (G4int) analysisManager->GetH2(4)->bin_entries((i),(j));
-      right = (G4int) analysisManager->GetH2(5)->bin_entries((i),(j));
-      entry = left + right;
-      if(entry>0)
-      {
-        analysisManager->FillH1(id, (entry) );
-      }
-
-      id+=5;
-
-    }  
-  }
-
-
 
   analysisManager->GetH2(4)->reset();
   analysisManager->GetH2(5)->reset();
+  analysisManager->GetH2(17)->reset();
   analysisManager->GetH1(9)->reset();
 
 

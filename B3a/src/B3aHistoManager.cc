@@ -121,7 +121,8 @@ void HistoManager::Book()
 "Average Photons Detected per interacted gamma for 2D RIGHT (n/mm x,y)",
 "Gamma Interaction Position (n/mm x,y)",
 "Gamma PhotoElectric Position (n/mm x,y)",
-"Gamma Compton Position (n/mm x,y)"};
+"Gamma Compton Position (n/mm x,y)",
+"Current Photons Distribution 2D (n/mm x,y)"};
 
    const std::string second[] = { "positron","electron","opticalphoton","gammas","proton","alpha","Li6","Be7","C11","C12","N15","O15","O16"};
    const int secondSize = sizeof(second)/sizeof(second[0]);
@@ -235,7 +236,7 @@ ih5 = analysisManager->CreateH2(title[19], title[19], nx, (-Dx/2), (Dx/2), ny,(-
 ih5 = analysisManager->CreateH2(title[20], title[20], nx, (-Dx/2), (Dx/2), ny,(-Dy/2),(Dy/2)); //2d 10
     analysisManager->SetH2Activation(ih5, true);
 
-ih5 = analysisManager->CreateH2(title[21], title[21], nDx, 0, nDx, nDx,0,nDx); //2d 11
+ih5 = analysisManager->CreateH2(title[21], title[21], 400, 0, 400, 400,0, 400); //2d 11 //#phot right vs left
     analysisManager->SetH2Activation(ih5, true);
 
 ih5 = analysisManager->CreateH1(title[22], title[22], 1, 0, 1); //1d 9
@@ -272,38 +273,66 @@ ih5 = analysisManager->CreateH2(title[33], title[33], nx, 0, nx, ny, 0, ny); //2
     analysisManager->SetH2Activation(ih5, true);
     ih5 = analysisManager->CreateH2(title[36], title[36], nx, (-Dx/2), (Dx/2), ny,(-Dy/2),(Dy/2)); //2d 16
     analysisManager->SetH2Activation(ih5, true);
+    ih5 = analysisManager->CreateH2(title[37], title[37], nx, (-Dx/2), (Dx/2), ny,(-Dy/2),(Dy/2)); //2d 17
+    analysisManager->SetH2Activation(ih5, true);
+
+////////// Cross Section HISTOGRAMS ///////////////////////////////////////////////////////////////
+    G4String cst = "Cross Section (barns-atom-MeV) - ";
+    G4String cstT = cst + "Total";
+    G4String cstp = cst + "PhotoElectric";
+    G4String cstc = cst + "Compton";
+    G4String cstr = cst + "Rayleigh";
+    G4int bn = 1000;
+    G4double bo = 10*eV;
+    G4double bm = 1*MeV;
+    ih5 = analysisManager->CreateH1(cstT, cstT, bn, bo, bm); //19
+    analysisManager->SetH1Activation(ih5, true);
+    ih5 = analysisManager->CreateH1(cstp, cstp,  bn, bo, bm);
+    analysisManager->SetH1Activation(ih5, true);
+    ih5 = analysisManager->CreateH1(cstc, cstc,  bn, bo, bm);
+    analysisManager->SetH1Activation(ih5, true);
+    ih5 = analysisManager->CreateH1(cstr, cstr, bn, bo, bm); //22
+    analysisManager->SetH1Activation(ih5, true);
+
+
 
 ////////// Individual HISTOGRAMS ///////////////////////////////////////////////////////////////
     G4int ni = 0; //(nmin)
-    G4int na = 30; //(nmax)
-    //.. 1D id starts from 19
+    G4int na = 400; //(nmax)
+    G4int nax = 8000;
+    G4int nb = 100;
+    //.. 1D id starts from 23
 
-    G4String cell = "_Photon-Deposition per gamma (nOfPhotons)";
+    G4String cell = "_Photon-Deposition per gamma";
     G4String name;
     G4String compt;
     G4String photo;
     G4String ceren;
     G4String brem ;
+    G4String n2;
  ///LEFT 
  for(int i = 1; i<=nx; i++)
  {
     for(int j = 1; j<=ny; j++)
     {
-        name = to_string(i)+to_string(j) + cell;
+        name = to_string(i)+to_string(j) + cell + "-LRDetectors";
             compt = name + " Compton";
             photo = name + " Photoelectric";
             ceren = name + " Cerenkov";
             brem  = name + " Bremsstrahlung";
+            n2 = to_string(i)+to_string(j) + cell + "-Strips";
         
-        ih5 = analysisManager->CreateH1(name, name, na, ni, na);
+        ih5 = analysisManager->CreateH1(name, name, nb, ni, na);
     	analysisManager->SetH1Activation(ih5, true);
-        ih5 = analysisManager->CreateH1(compt, compt, na, ni, na);
+        ih5 = analysisManager->CreateH1(compt, compt, nb, ni, na);
     	analysisManager->SetH1Activation(ih5, true);
-        ih5 = analysisManager->CreateH1(photo, photo, na, ni, na); 
+        ih5 = analysisManager->CreateH1(photo, photo, nb, ni, na); 
     	analysisManager->SetH1Activation(ih5, true);
-        ih5 = analysisManager->CreateH1(ceren, ceren, na, ni, na); 
+        ih5 = analysisManager->CreateH1(ceren, ceren, nb, ni, na); 
     	analysisManager->SetH1Activation(ih5, true);
-        ih5 = analysisManager->CreateH1(brem, brem, na, ni, na); 
+        ih5 = analysisManager->CreateH1(brem, brem, nb, ni, na); 
+    	analysisManager->SetH1Activation(ih5, true);
+        ih5 = analysisManager->CreateH1(n2, n2, nb, ni, nax); 
     	analysisManager->SetH1Activation(ih5, true);
         //G4cout << "finished stringing" << G4endl;
     }

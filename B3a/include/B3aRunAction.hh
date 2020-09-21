@@ -38,12 +38,14 @@
 
 class HistoManager;
 class G4VUserDetectorConstruction;
+class GDMLDetectorConstruction;
+class B3PrimaryGeneratorAction;
 /// Run action class
 
 class B3aRunAction : public G4UserRunAction
 {
   public:
-    B3aRunAction(G4VUserDetectorConstruction* patient);
+    B3aRunAction(G4VUserDetectorConstruction* patient,B3PrimaryGeneratorAction* kin);
     ~B3aRunAction();
     
     virtual void BeginOfRunAction(const G4Run*);
@@ -60,6 +62,7 @@ private:
     G4Accumulable<G4double> fSumDose;  
     HistoManager* fHistoManager;
     G4VUserDetectorConstruction* fpatient;
+    B3PrimaryGeneratorAction* fPrimary;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

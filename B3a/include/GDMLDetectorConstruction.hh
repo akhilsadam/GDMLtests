@@ -28,12 +28,18 @@
 #include "G4LogicalSkinSurface.hh"
 #include "G4PhysicalConstants.hh"
 
+#ifdef LYSOTest
+	#include "LYSO.hh"
+#endif
+
 #include "G4GDMLParser.hh"
 
 using namespace std ;
 
 class G4VPhysicalVolume;
 class G4LogicalVolume;
+
+inline G4Material* EJ208;
 
 //#include "B3DetectorConstruction.hh"
 class GDMLDetectorConstruction : public DetectorConstruction
@@ -49,7 +55,7 @@ class GDMLDetectorConstruction : public DetectorConstruction
 		#endif
 
 	//--------------
-
+//----------------------------------------------------------------------DEF MAT----------------------------------------------------////
 	G4NistManager* man = G4NistManager::Instance();
 
 	G4Material* Air = man->FindOrBuildMaterial("G4_AIR");
@@ -58,17 +64,29 @@ class GDMLDetectorConstruction : public DetectorConstruction
   
   	G4Element*  H = man->FindOrBuildElement("H" , isotopes);
 	G4Element*  C = man->FindOrBuildElement("C" , isotopes);
+	G4Element*  Pb = man->FindOrBuildElement("Pb" , isotopes);
+
+	G4Material* CarbonM = new G4Material("CarbonM", 2.26*g/cm3, 1);
+	CarbonM->AddElement(C,1);
+
+	G4Material* LeadM = new G4Material("LeadM", 207.2*g/cm3, 1);
+	LeadM->AddElement(Pb,1);
 
 	G4Material* Vikuiti = new G4Material("Vikuiti", 1.07*g/cm3, 2);
 	Vikuiti->AddElement(C,8);
 	Vikuiti->AddElement(H,8);
 	Vikuiti->GetIonisation()->SetBirksConstant(0.126*mm/MeV);
 
-	G4Material* EJ208 = new G4Material("EJ208", 1.023*g/cm3, 2);
-	EJ208->AddElement(C,9);
-	EJ208->AddElement(H,10);
-	EJ208->GetIonisation()->SetBirksConstant(0.1955*mm/MeV);
-	
+	G4Material* PVT = new G4Material("PVT", 1.023*g/cm3, 2);
+	PVT->AddElement(C,9);
+	PVT->AddElement(H,10);
+	PVT->GetIonisation()->SetBirksConstant(0.1955*mm/MeV);
+
+//----------------------------------------------------------------------MIX MAT----------------------------------------------------////
+	EJ208 = new G4Material("EJ208",11.33*g/cm3,2);
+	EJ208->AddMaterial(PVT,95*perCent);
+	EJ208->AddMaterial(LeadM,5*perCent);
+//----------------------------------------------------------------------MAT TABLES------------------------------------------------////
 	const G4int n = 6;
 
 	G4double PhotonEnergy[n] = {3.105*eV,2.95714*eV,2.855*eV,2.7*eV,2.5875*eV,2.388*eV}; //visible spectrum (400,420,435,460,480,520)nm
@@ -91,7 +109,6 @@ class GDMLDetectorConstruction : public DetectorConstruction
 		//G4double reflectivity_vk[n] = {0,0,0,0,0,0}; //using ESR_Clear. DRP:{0.9643,0.9680,0.9698,0.9743,0.9761,0.9798};
 	#endif
 	
-
 	G4double efficiency[n] = {1.0,1.0,1.0,1.0,1.0,1.0};
 
 	G4MaterialPropertiesTable* airMPT = new G4MaterialPropertiesTable();
@@ -120,15 +137,13 @@ class GDMLDetectorConstruction : public DetectorConstruction
 	Air->SetMaterialPropertiesTable(airMPT);
 	EJ208->SetMaterialPropertiesTable(scintMPT);
 	Vikuiti->SetMaterialPropertiesTable(vkMPT);
-	
+//----------------------------------------------------------------------SETSURF----------------------------------------------------////
 	surfVKMPT->AddProperty("REFLECTIVITY", PhotonEnergy, reflectivity_vk, n);
 	surfEJMPT->AddProperty("REFLECTIVITY", PhotonEnergy, reflectivity_vk, n); // WHAT is the EJ reflectivity?
 	surfVKMPT->AddProperty("EFFICIENCY", PhotonEnergy, efficiency, n);
 	surfEJMPT->AddProperty("EFFICIENCY", PhotonEnergy, efficiency, n);
 	surfVKMPT->AddProperty("RINDEX", PhotonEnergy,refractive_index_vk,n);
 	surfEJMPT->AddProperty("RINDEX", PhotonEnergy,refractive_index_ej,n);
-
-
 
 	G4OpticalSurface* surfVK = new G4OpticalSurface("surfVK");
 	G4OpticalSurface* surfEJ = new G4OpticalSurface("surfEJ");
@@ -161,12 +176,19 @@ class GDMLDetectorConstruction : public DetectorConstruction
 	surfEJ->SetMaterialPropertiesTable(surfEJMPT);
 	#endif
 
+	#ifdef LYSOTest
+		LYSO* lyse = new LYSO();
+		EJ208 = lyse->LYSOmat();
+		//printf("\n\n LYSO NAME: %s",EJ208->GetName()); HAS AN ERROR
+		surfEJ = lyse->LYSOsurf();
+	#endif
 //----------------------------------------------------------------------Geometry---------------------------------------------------////
 
 	G4VisAttributes* red_col = new G4VisAttributes(G4Color(0.6,0.4,0.4,1));
 	G4VisAttributes* blue_col = new G4VisAttributes(G4Color(0.4,0.4,0.6,1));
 	G4VisAttributes* det_col = new G4VisAttributes(G4Color(0.8,0.8,1.0,1));
 	G4VisAttributes* invis_col = new G4VisAttributes(G4Color(0.0,0.0,0.0,0));
+
 
 	#ifdef SSRefractionTest
 		G4Box* world = new G4Box("World",(20*length_D),(20*length_D),(20*length_D));
@@ -358,6 +380,10 @@ class GDMLDetectorConstruction : public DetectorConstruction
 		//SetSensitiveDetector("detVOLY",detY);
 
     }
+	G4Material* GetMaterial()
+	{
+		return EJ208;
+	}
 
 
   private:

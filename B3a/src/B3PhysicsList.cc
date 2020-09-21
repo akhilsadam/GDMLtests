@@ -93,6 +93,8 @@
 #include "G4Proton.hh"
 
 #include "G4SystemOfUnits.hh"
+#include "G4LossTableManager.hh"
+#include "G4UnitsTable.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo.....
 
@@ -110,6 +112,12 @@ B3PhysicsList::B3PhysicsList() : G4VModularPhysicsList()
 
   // EM physics
   fEmPhysicsList = new G4EmStandardPhysics(verboseLevel);
+
+  //add new units for cross sections
+  // 
+  new G4UnitDefinition( "mm2/g", "mm2/g","Surface/Mass", mm2/g);
+  new G4UnitDefinition( "um2/mg", "um2/mg","Surface/Mass", um*um/mg);
+
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo.....

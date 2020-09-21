@@ -130,6 +130,7 @@ void B3SteppingAction::UserSteppingAction(const G4Step* step)
 			//G4cout << "Filled Photon Deposition" << G4endl;
 			analysisManager->FillH1(8, (x-Ox), 1);
 			analysisManager->FillH2(1, (x-Ox),(y-Oy), 1);
+			analysisManager->FillH2(17, (x-Ox),(y-Oy), 1);
 			analysisManager->FillH1(9, 0.5, 1);
 			ps = postPoint->GetProcessDefinedStep();
 			if(ps)
@@ -164,6 +165,7 @@ void B3SteppingAction::UserSteppingAction(const G4Step* step)
 					//motion - do nothing - un-double-count
 					analysisManager->FillH1(8, (x-Ox), -1);
 					analysisManager->FillH2(1, (x-Ox),(y-Oy), -1);
+					analysisManager->FillH2(17, (x-Ox),(y-Oy), -1);
 				}
 				else
 				{

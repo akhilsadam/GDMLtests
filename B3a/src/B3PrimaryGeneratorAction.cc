@@ -68,6 +68,17 @@ B3PrimaryGeneratorAction::~B3PrimaryGeneratorAction()
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+void B3PrimaryGeneratorAction::CSTtest(double E)
+{
+  G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();
+  G4ParticleDefinition* particle = particleTable->FindParticle("gamma");
+    fParticleGun = new G4ParticleGun(1);
+    fParticleGun->SetParticleDefinition(particle);
+    fParticleGun->SetParticlePolarization(G4RandomDirection().unit());
+    fParticleGun->SetParticleEnergy(E);  //visible spectrum between 400-700 nm  
+    //fParticleGun->GeneratePrimaryVertex(anEvent);
+}
+
 
 void B3PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 {

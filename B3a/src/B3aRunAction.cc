@@ -41,16 +41,23 @@
 //#include "B3DetectorConstruction.hh"
 #include "GDMLDetectorConstruction.hh"
 
+#ifdef CrossSectionTest
+	#include "G4ProcessManager.hh"
+	#include "G4LossTableManager.hh"
+	#include "G4PhysicalConstants.hh"
+	#include "G4SystemOfUnits.hh"
+	#include "G4EmCalculator.hh"
+	#include "CrossSectionTester.hh"
+#endif
+
 #include <time.h>
-//#include "B3aHistoManager.cc" ///  NEED TO FIX -----
-//#include "B3SteppingAction.cc" ///  NEED TO FIX -----
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-B3aRunAction::B3aRunAction(G4VUserDetectorConstruction* patient)
+B3aRunAction::B3aRunAction(G4VUserDetectorConstruction* patient, B3PrimaryGeneratorAction* kin)
  : G4UserRunAction(),
    fGoodEvents(0),
    fSumDose(0.),
    fpatient(patient),
-   fHistoManager(0)  
+   fHistoManager(0)
 {  
   //add new units for dose
   // 
@@ -70,6 +77,7 @@ B3aRunAction::B3aRunAction(G4VUserDetectorConstruction* patient)
   accumulableManager->RegisterAccumulable(fSumDose); 
 
   fHistoManager = new HistoManager(fpatient);
+  fPrimary = kin;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -83,21 +91,24 @@ B3aRunAction::~B3aRunAction()
 
 void B3aRunAction::BeginOfRunAction(const G4Run* run)
 { 
-  nevents = (G4int) (run->GetNumberOfEventToBeProcessed());
+  #ifdef CrossSectionTest
+	CrossSectionTester* cst = new CrossSectionTester();
+	cst->CSRunAction(run, (GDMLDetectorConstruction*) fpatient, fPrimary);
+  #endif
 
+
+  nevents = (G4int) (run->GetNumberOfEventToBeProcessed());
   G4cout << "### Run " << run->GetRunID() << " start." << G4endl;
   
   // reset accumulables to their initial values
   G4AccumulableManager* accumulableManager = G4AccumulableManager::Instance();
   accumulableManager->Reset();
-
   //histograms
   //
   G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();
   if ( analysisManager->IsActive() ) {
     analysisManager->OpenFile();
   }  
-
   //inform the runManager to save random number seed
   G4RunManager::GetRunManager()->SetRandomNumberStore(false);
 
@@ -109,11 +120,9 @@ void B3aRunAction::EndOfRunAction(const G4Run* run)
 {
   G4int nofEvents = run->GetNumberOfEvent();
   if (nofEvents == 0) return;
-
   // Merge accumulables 
   G4AccumulableManager* accumulableManager = G4AccumulableManager::Instance();
   accumulableManager->Merge();
-
   // save histograms
   G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();
   if ( analysisManager->IsActive() ) {  
@@ -122,7 +131,7 @@ void B3aRunAction::EndOfRunAction(const G4Run* run)
     analysisManager->GetH2(6)->multiply(1.0/interacted);
     analysisManager->GetH2(12)->multiply(1.0/interacted);
     analysisManager->GetH2(13)->multiply(1.0/interacted);
-    
+    //close
     analysisManager->Write();    
     analysisManager->CloseFile();
   }    
@@ -146,11 +155,20 @@ void B3aRunAction::EndOfRunAction(const G4Run* run)
   //
   if (IsMaster())
   {
+    #ifdef SingleStrip
     G4cout
      << G4endl
-     << "--------------------End of Global Run-----------------------"
+     << "--------------------End of Global Run------------------------"
      << G4endl
-     << "  The run was " << nofEvents << " events ";
+     << "  The run was " << (nofEvents*100) << " "<< partName;
+    #endif
+    #ifdef MultipleStripCell
+    G4cout
+     << G4endl
+     << "--------------------End of Global Run------------------------"
+     << G4endl
+     << "  The run was " << nofEvents << " "<< partName;
+    #endif
 
     /*G4int nDy = 103;
     G4double scale = 1/nevents;

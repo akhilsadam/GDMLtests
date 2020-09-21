@@ -37,10 +37,13 @@
 #include "GDMLDetectorConstruction.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+B3PrimaryGeneratorAction* fprimaryGen; 
 
 B3aActionInitialization::B3aActionInitialization(G4VUserDetectorConstruction* detector)
  : G4VUserActionInitialization(),fDetector(detector)
-{}
+{
+  fprimaryGen = new B3PrimaryGeneratorAction();
+}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -51,7 +54,7 @@ B3aActionInitialization::~B3aActionInitialization()
 
 void B3aActionInitialization::BuildForMaster() const
 {
-  B3aRunAction* runAction = new B3aRunAction(fDetector);
+  B3aRunAction* runAction = new B3aRunAction(fDetector,fprimaryGen);
   SetUserAction(runAction);
 }
 
@@ -59,12 +62,12 @@ void B3aActionInitialization::BuildForMaster() const
 
 void B3aActionInitialization::Build() const
 {
-  B3aRunAction* runAction = new B3aRunAction(fDetector);
+  B3aRunAction* runAction = new B3aRunAction(fDetector,fprimaryGen);
   SetUserAction(runAction);
 
   B3aEventAction* eventAction = new B3aEventAction(runAction);
   SetUserAction(eventAction);
-  SetUserAction(new B3PrimaryGeneratorAction);
+  SetUserAction(fprimaryGen);
   SetUserAction(new B3StackingAction);
   SetUserAction(new B3SteppingAction(eventAction,fDetector));
 
