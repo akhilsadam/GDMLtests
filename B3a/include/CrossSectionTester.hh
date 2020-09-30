@@ -245,11 +245,16 @@ void CSRun()//void RunAction::BeginOfRunAction(const G4Run*)
   
   //mean free path (g/cm2)
   G4cout << "\n        (g/cm2)            : ";  
+  std::ofstream myfile5("lambdas5.txt", std::ios_base::app);
+  myfile5 << energyP << " ";  
   for (size_t j=0; j<sigma2.size();j++) {
     lambda =  DBL_MAX;
-    if (sigma2[j] > 0.) lambda = 1/sigma2[j];                       
+    if (sigma2[j] > 0.) lambda = 1/sigma2[j];   
+    myfile5 <<  lambda / g * cm *cm << " ";                    
     G4cout << "\t" << std::setw(13) << G4BestUnit( lambda, "Mass/Surface");    
   }
+  myfile5 << std::endl;
+  myfile5.close(); 
   G4cout << G4endl;
   
   if (charge == 0.) {

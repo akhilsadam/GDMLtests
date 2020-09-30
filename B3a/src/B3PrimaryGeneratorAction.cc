@@ -119,7 +119,11 @@ if (particle == G4ChargedGeantino::ChargedGeantino()) {
   //G4double x0  = -2.58*2*cm, y0  = 9.5*cm, z0  = 50*cm;
   G4double x0 = -5.14*cm, y0  = 9.66*cm,z0  = 0.5*cm;
   G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();
-  G4ParticleDefinition* particle = particleTable->FindParticle("opticalphoton");
+  #ifndef CST2
+    G4ParticleDefinition* particle = particleTable->FindParticle("opticalphoton");
+  #else
+    G4ParticleDefinition* particle = particleTable->FindParticle("gamma");
+  #endif
   double deltaL = Lmax - Lmin;
   //G4cout << "Emax " << Emax/eV << " Emin " << Emin/eV << G4endl;
   for(int i = 0; i<1000; i++)
@@ -131,11 +135,14 @@ if (particle == G4ChargedGeantino::ChargedGeantino()) {
       G4double y = tan(G4UniformRand()*pi/2);
       fParticleGun->SetParticlePosition(G4ThreeVector(0,0,0.001*m));
       fParticleGun->SetParticleMomentumDirection(G4ThreeVector(0,y,-1).unit());
-    #elif  SSReflectionTest true
+    #elif  defined(SSReflectionTest)
+      #ifndef SSSpecularReflectionTest
       fParticleGun->SetParticlePosition(G4ThreeVector(x0,y0,z0));
       fParticleGun->SetParticleMomentumDirection(G4ThreeVector(0,-1,160.4838).unit()); //0,-1,160.4838 for lower wall testing on 100cm
+      #else
       fParticleGun->SetParticlePosition(G4ThreeVector(x0,y0,z0));
       fParticleGun->SetParticleMomentumDirection(G4ThreeVector(0,0,1));
+      #endif
     #endif
     fParticleGun->SetParticleEnergy(EoL/(G4UniformRand()*deltaL + Lmin));  //visible spectrum between 400-700 nm  
     fParticleGun->GeneratePrimaryVertex(anEvent);

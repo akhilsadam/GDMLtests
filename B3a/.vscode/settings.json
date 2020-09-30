@@ -85,6 +85,8 @@
         "stdexcept": "c",
         "streambuf": "c",
         "thread": "c",
-        "cinttypes": "c"
+        "cinttypes": "c",
+        "event": "cpp",
+        "point": "cpp"
     }
 }

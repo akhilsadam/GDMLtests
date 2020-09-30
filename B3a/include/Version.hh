@@ -18,9 +18,10 @@ const double  length_D  = 100*cm;
     //#define SSSpecularReflectionTest // reflection test - needs SSReflectionTest
     //#define SSReflectionTest // reflection test - needs SingleStrip define and ScintillationDisable
     //#define SSRefractionTest // refraction test - needs SingleStrip define and ScintillationDisable (NOT ReflectionDisable)
-    //#define CrossSectionTest // prints cross sections!
+    //#define CrossSectionTest // prints default cross sections!
 // ....oooOO0OOooo........oooOO0OOooo...|MAT-TYPE\...oooOO0OOooo........oooOO0OOooo......
-    #define LYSOTest // swaps scintillator material to LYSO
+    //#define LYSOTest // swaps scintillator material to LYSO
+    #define PVTTest // swaps scintillator material to PVT
 // ....oooOO0OOooo........oooOO0OOooo...|GEOMETRY\...oooOO0OOooo........oooOO0OOooo......
     #define MultipleStripCell // all 3x16 strips - default
 

@@ -52,6 +52,9 @@ B3StackingAction::ClassifyNewTrack(const G4Track* track)
   if (track->GetParentID() == 0) return fUrgent;
 
   //kill secondary neutrino
+  /*#ifdef CST2
+  if (track->GetDefinition() != G4Gamma::Gamma()) return fKill;
+  #endif*/
   //if (track->GetDefinition() == G4NeutrinoE::NeutrinoE()) return fKill; //  return fUrgent;MODIFIED to not kill
   //if (track->GetDefinition() == G4Neutron::Neutron()) return fKill;
   else return fUrgent;

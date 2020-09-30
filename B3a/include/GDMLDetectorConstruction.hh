@@ -33,8 +33,12 @@
 #endif
 
 #include "G4GDMLParser.hh"
-
-using namespace std ;
+#include <iostream>
+#include <fstream>
+#include <iterator>
+#include <vector>
+#include <string>
+using namespace std;
 
 class G4VPhysicalVolume;
 class G4LogicalVolume;
@@ -45,6 +49,17 @@ inline G4Material* EJ208;
 class GDMLDetectorConstruction : public DetectorConstruction
 {
   public:
+   vector<string> split (const string &s, char delim) {
+    vector<string> result;
+    stringstream ss (s);
+    string item;
+
+    while (getline (ss, item, delim)) {
+        result.push_back (item);
+    }
+
+    return result;
+   }
    GDMLDetectorConstruction(G4GDMLParser& parser, G4VPhysicalVolume *setWorld = 0) : DetectorConstruction()
    {
 	G4cout <<""<< G4endl;
@@ -77,15 +92,20 @@ class GDMLDetectorConstruction : public DetectorConstruction
 	Vikuiti->AddElement(H,8);
 	Vikuiti->GetIonisation()->SetBirksConstant(0.126*mm/MeV);
 
-	G4Material* PVT = new G4Material("PVT", 1.023*g/cm3, 2);
+	double rho_pvt = 1.023*g/cm3;
+	G4Material* PVT = new G4Material("PVT", rho_pvt, 2);
 	PVT->AddElement(C,9);
 	PVT->AddElement(H,10);
 	PVT->GetIonisation()->SetBirksConstant(0.1955*mm/MeV);
 
 //----------------------------------------------------------------------MIX MAT----------------------------------------------------////
-	EJ208 = new G4Material("EJ208",11.33*g/cm3,2);
-	EJ208->AddMaterial(PVT,95*perCent);
-	EJ208->AddMaterial(LeadM,5*perCent);
+	#ifndef PVTTest
+		EJ208 = new G4Material("EJ208",11.33*g/cm3,2);
+		EJ208->AddMaterial(PVT,95*perCent);
+		EJ208->AddMaterial(LeadM,5*perCent);
+	#else
+		EJ208 = PVT;
+	#endif
 //----------------------------------------------------------------------MAT TABLES------------------------------------------------////
 	const G4int n = 6;
 
@@ -97,7 +117,45 @@ class GDMLDetectorConstruction : public DetectorConstruction
 
 	G4double refractive_index_ej[n] = {1.58,1.58,1.58,1.58,1.58,1.58};
 	G4double att_length_ej[n+1] = {10*cm,400*cm,400*cm,400*cm,400*cm,400*cm,400*cm};
+//----------------------------------------------------------------------ATT READIN------------------------------------------------////
+	
+	vector<G4double> att_length_ejRV(begin(att_length_ej), end(att_length_ej));
+	vector<G4double> gammaPhotonEnergyRV(begin(gammaPhotonEnergy), end(gammaPhotonEnergy));
+	vector<G4double> NPhotonEnergyRV;
+	vector<G4double> rayScr_length_pvtRV;
+	string line;
+	int sze = n+1;
+	int sz0 = 0;
+	char delm = '|';
+  	ifstream myfile ("PVT.txt");
+  	if (myfile.is_open())
+  	{
+		getline (myfile,line);
+		getline (myfile,line);
+		getline (myfile,line);
+    	while ( getline (myfile,line) )
+    	{
+			vector<string> val = split(line,delm);
+			gammaPhotonEnergyRV.push_back(G4double(stod(val[0])));
+			NPhotonEnergyRV.push_back(G4double(stod(val[0])));
+			rayScr_length_pvtRV.push_back(G4double(stod(val[1])));
+			att_length_ejRV.push_back(G4double(stod(val[4])));
+			sze+=1;
+    	}
+    	myfile.close();
+		sz0 = sze - (n+1);
+	}
+  	else G4cout << "Unable to open file" << G4endl; 
 
+	G4double att_length_ejR[sze];
+	G4double gammaPhotonEnergyR[sze];
+	G4double rayScr_length_pvtR[sz0];
+	G4double NPhotonEnergyR[sz0];
+	memcpy( att_length_ejR, &att_length_ejRV[0], sizeof( int ) * att_length_ejRV.size() );
+	memcpy( gammaPhotonEnergyR, &gammaPhotonEnergyRV[0], sizeof( int ) * gammaPhotonEnergyRV.size() );
+	memcpy( rayScr_length_pvtR, &rayScr_length_pvtRV[0], sizeof( int ) * rayScr_length_pvtRV.size() );
+	memcpy( NPhotonEnergyR, &NPhotonEnergyRV[0], sizeof( int ) * NPhotonEnergyRV.size() );	
+//----------------------------------------------------------------------MAT TABLES------------------------------------------------////
 	G4double refractive_index_air[n] = {1.00029,1.00029,1.00029,1.00029,1.00029,1.00029};
 
 	G4double fast[n] = {0.032258,0.258064,0.322581,0.225806,0.129032,0.032258};//{0.1,0.8,1,0.7,0.4,0.1}
@@ -121,7 +179,8 @@ class GDMLDetectorConstruction : public DetectorConstruction
 	vkMPT->AddProperty("RINDEX", PhotonEnergy,refractive_index_vk,n);
 	vkMPT->AddProperty("ABSLENGTH", gammaPhotonEnergy,att_length_vk,n+1);
 	scintMPT->AddProperty("RINDEX", PhotonEnergy,refractive_index_ej,n);
-	scintMPT->AddProperty("ABSLENGTH", gammaPhotonEnergy,att_length_ej,n+1);
+	scintMPT->AddProperty("ABSLENGTH",gammaPhotonEnergyR,att_length_ejR,sze);// MODIFIED WITH DATA
+	scintMPT->AddProperty("RAYLEIGH",NPhotonEnergyR,rayScr_length_pvtR,sz0);
 
 	#ifndef ScintillationDisable
 	scintMPT->AddProperty("FASTCOMPONENT", PhotonEnergy, fast, n);

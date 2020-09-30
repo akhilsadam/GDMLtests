@@ -131,6 +131,9 @@ void B3aRunAction::EndOfRunAction(const G4Run* run)
     analysisManager->GetH2(6)->multiply(1.0/interacted);
     analysisManager->GetH2(12)->multiply(1.0/interacted);
     analysisManager->GetH2(13)->multiply(1.0/interacted);
+    //#ifdef CST2
+    //analysisManager->GetH2(19)->multiply(1.0/nofEvents);
+    //#endif
     //close
     analysisManager->Write();    
     analysisManager->CloseFile();

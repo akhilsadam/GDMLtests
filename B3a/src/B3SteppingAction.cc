@@ -268,7 +268,7 @@ void B3SteppingAction::UserSteppingAction(const G4Step* step)
 			analysisManager->FillH1(18,  lambdaP, 1);
 		}
 	}
-
+	
 	foo2.unlock();
 	barL2.unlock();
 }
