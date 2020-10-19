@@ -163,7 +163,7 @@ int main(int argc,char** argv)
     #endif
     #ifdef SingleStrip
       UImanager->ApplyCommand("/vis/filtering/trajectories/create/particleFilter");
-      UImanager->ApplyCommand("/vis/filtering/trajectories/particleFilter-0/add gamma");
+      UImanager->ApplyCommand("/vis/filtering/trajectories/particleFilter-0/add opticalphoton");
     #endif
     ui->SessionStart();
     delete ui;

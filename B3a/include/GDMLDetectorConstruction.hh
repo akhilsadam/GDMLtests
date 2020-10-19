@@ -97,7 +97,6 @@ class GDMLDetectorConstruction : public DetectorConstruction
 	PVT->AddElement(C,9);
 	PVT->AddElement(H,10);
 	PVT->GetIonisation()->SetBirksConstant(0.1955*mm/MeV);
-
 //----------------------------------------------------------------------MIX MAT----------------------------------------------------////
 	#ifndef PVTTest
 		EJ208 = new G4Material("EJ208",11.33*g/cm3,2);
@@ -110,51 +109,59 @@ class GDMLDetectorConstruction : public DetectorConstruction
 	const G4int n = 6;
 
 	G4double PhotonEnergy[n] = {3.105*eV,2.95714*eV,2.855*eV,2.7*eV,2.5875*eV,2.388*eV}; //visible spectrum (400,420,435,460,480,520)nm
-	G4double gammaPhotonEnergy[n+1] = {511000*eV,3.105*eV,2.95714*eV,2.855*eV,2.7*eV,2.5875*eV,2.388*eV};
 	
 	G4double refractive_index_vk[n] = {1.6,1.6,1.6,1.6,1.6,1.6};
-	G4double att_length_vk[n+1] = {10*cm,400*cm,400*cm,400*cm,400*cm,400*cm,400*cm};
+	G4double att_length_vk[n] = {400*cm,400*cm,400*cm,400*cm,400*cm,400*cm};
 
 	G4double refractive_index_ej[n] = {1.58,1.58,1.58,1.58,1.58,1.58};
-	G4double att_length_ej[n+1] = {10*cm,400*cm,400*cm,400*cm,400*cm,400*cm,400*cm};
+	G4double att_length_ej[n] = {400*cm,400*cm,400*cm,400*cm,400*cm,400*cm};
 //----------------------------------------------------------------------ATT READIN------------------------------------------------////
 	
 	vector<G4double> att_length_ejRV(begin(att_length_ej), end(att_length_ej));
-	vector<G4double> gammaPhotonEnergyRV(begin(gammaPhotonEnergy), end(gammaPhotonEnergy));
-	vector<G4double> NPhotonEnergyRV;
-	vector<G4double> rayScr_length_pvtRV;
+	vector<G4double> PhotonEnergyRV(begin(PhotonEnergy), end(PhotonEnergy));
+	vector<G4double> NPhotonEnergyRV = *new vector<G4double>();
+	vector<G4double> rayScr_length_pvtRV = *new vector<G4double>();
 	string line;
-	int sze = n+1;
+	int sze = n;
 	int sz0 = 0;
 	char delm = '|';
   	ifstream myfile ("PVT.txt");
+	  G4cout << "OPENING PVT FILE -----------";
   	if (myfile.is_open())
   	{
 		getline (myfile,line);
 		getline (myfile,line);
 		getline (myfile,line);
+		G4cout << G4endl;
     	while ( getline (myfile,line) )
     	{
 			vector<string> val = split(line,delm);
-			gammaPhotonEnergyRV.push_back(G4double(stod(val[0])));
-			NPhotonEnergyRV.push_back(G4double(stod(val[0])));
-			rayScr_length_pvtRV.push_back(G4double(stod(val[1])));
-			att_length_ejRV.push_back(G4double(stod(val[4])));
+			G4double en = G4double(stod(val[0]));
+			PhotonEnergyRV.push_back(en);
+			NPhotonEnergyRV.push_back(en);
+			G4double rayScr_CS = G4double(stod(val[1]))*cm2/g;
+			G4double att_CS = G4double(stod(val[4]))*cm2/g;
+			G4double rS_l = 1/(rho_pvt*rayScr_CS);
+			G4double att_l = 1/(rho_pvt*att_CS);
+			rayScr_length_pvtRV.push_back(rS_l);
+			att_length_ejRV.push_back(att_l);
+			G4cout << "values  : " << val[0] << " "<<rS_l/cm<<" "<<att_l/cm<<G4endl;
 			sze+=1;
+			sz0+=1;
     	}
     	myfile.close();
-		sz0 = sze - (n+1);
+		G4cout << "opened file" << G4endl;
 	}
-  	else G4cout << "Unable to open file" << G4endl; 
+  	else {G4cout << "Unable to open file" << G4endl; exit(3);}
 
 	G4double att_length_ejR[sze];
-	G4double gammaPhotonEnergyR[sze];
+	G4double PhotonEnergyR[sze];
 	G4double rayScr_length_pvtR[sz0];
 	G4double NPhotonEnergyR[sz0];
-	memcpy( att_length_ejR, &att_length_ejRV[0], sizeof( int ) * att_length_ejRV.size() );
-	memcpy( gammaPhotonEnergyR, &gammaPhotonEnergyRV[0], sizeof( int ) * gammaPhotonEnergyRV.size() );
-	memcpy( rayScr_length_pvtR, &rayScr_length_pvtRV[0], sizeof( int ) * rayScr_length_pvtRV.size() );
-	memcpy( NPhotonEnergyR, &NPhotonEnergyRV[0], sizeof( int ) * NPhotonEnergyRV.size() );	
+	memcpy( att_length_ejR, &att_length_ejRV[0], sizeof(double) * att_length_ejRV.size() );
+	memcpy( PhotonEnergyR, &PhotonEnergyRV[0], sizeof(double) * PhotonEnergyRV.size() );
+	memcpy( rayScr_length_pvtR, &rayScr_length_pvtRV[0], sizeof(double) * rayScr_length_pvtRV.size() );
+	memcpy( NPhotonEnergyR, &NPhotonEnergyRV[0], sizeof(double) * NPhotonEnergyRV.size() );	
 //----------------------------------------------------------------------MAT TABLES------------------------------------------------////
 	G4double refractive_index_air[n] = {1.00029,1.00029,1.00029,1.00029,1.00029,1.00029};
 
@@ -177,10 +184,10 @@ class GDMLDetectorConstruction : public DetectorConstruction
 
 	airMPT->AddProperty("RINDEX", PhotonEnergy,refractive_index_air,n);
 	vkMPT->AddProperty("RINDEX", PhotonEnergy,refractive_index_vk,n);
-	vkMPT->AddProperty("ABSLENGTH", gammaPhotonEnergy,att_length_vk,n+1);
+	vkMPT->AddProperty("ABSLENGTH", PhotonEnergy,att_length_vk,n);
 	scintMPT->AddProperty("RINDEX", PhotonEnergy,refractive_index_ej,n);
-	scintMPT->AddProperty("ABSLENGTH",gammaPhotonEnergyR,att_length_ejR,sze);// MODIFIED WITH DATA
-	scintMPT->AddProperty("RAYLEIGH",NPhotonEnergyR,rayScr_length_pvtR,sz0);
+	//scintMPT->AddProperty("ABSLENGTH",PhotonEnergyR,att_length_ejR,sze);// MODIFIED WITH DATA
+	//scintMPT->AddProperty("RAYLEIGH",NPhotonEnergyR,rayScr_length_pvtR,sz0);
 
 	#ifndef ScintillationDisable
 	scintMPT->AddProperty("FASTCOMPONENT", PhotonEnergy, fast, n);

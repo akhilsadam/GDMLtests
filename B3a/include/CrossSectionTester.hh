@@ -21,7 +21,7 @@
 #include "G4RandomDirection.hh"
 #include <vector>
 #include <math.h> 
-
+using namespace std;
 class CrossSectionTester
 {
 
@@ -215,19 +215,19 @@ void CSRun()//void RunAction::BeginOfRunAction(const G4Run*)
            << barns << " barn ";
 	if(j==0)
 	{
-		analysisManager->FillH1(20,energyP, barns);
+		//analysisManager->FillH1(20,energyP, barns);
 	}
 	else if(j==1)
 	{
-		analysisManager->FillH1(21,energyP, barns);
+		//analysisManager->FillH1(21,energyP, barns);
 	}
 	else if(j==3)
 	{
-		analysisManager->FillH1(22,energyP, barns);
+		//analysisManager->FillH1(22,energyP, barns);
 	}
 	else if(j==4)
 	{
-		analysisManager->FillH1(19,energyP, barns);
+		//analysisManager->FillH1(19,energyP, barns);
 	}
   }
    
@@ -246,15 +246,36 @@ void CSRun()//void RunAction::BeginOfRunAction(const G4Run*)
   //mean free path (g/cm2)
   G4cout << "\n        (g/cm2)            : ";  
   std::ofstream myfile5("lambdas5.txt", std::ios_base::app);
+  //std::ofstream myfileb("barns20.txt", std::ios_base::app);
   myfile5 << energyP << " ";  
   for (size_t j=0; j<sigma2.size();j++) {
     lambda =  DBL_MAX;
     if (sigma2[j] > 0.) lambda = 1/sigma2[j];   
-    myfile5 <<  lambda / g * cm *cm << " ";                    
-    G4cout << "\t" << std::setw(13) << G4BestUnit( lambda, "Mass/Surface");    
+    double out = lambda / g * cm *cm;
+    myfile5 << out << " ";                    
+    G4cout << "\t" << std::setw(13) << G4BestUnit( lambda, "Mass/Surface"); 
+        G4double barns = ((1.0/out)*1.023*pow(10,3)/(6.022*19));
+    if(j==0)
+	{
+		analysisManager->FillH1(20,energyP, barns); //photoE
+    //myfileb << energyP << " " << barns << std::endl;    
+	}
+	else if(j==1)
+	{
+		analysisManager->FillH1(21,energyP, barns);
+	}
+	else if(j==3)
+	{
+		analysisManager->FillH1(22,energyP, barns);
+	}
+	else if(j==4)
+	{
+		analysisManager->FillH1(19,energyP, barns);
+	}   
   }
   myfile5 << std::endl;
   myfile5.close(); 
+  //myfileb.close(); 
   G4cout << G4endl;
   
   if (charge == 0.) {

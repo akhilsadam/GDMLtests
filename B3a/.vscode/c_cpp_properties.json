@@ -8,7 +8,11 @@
                     "${workspaceFolder}/src",
                     "${workspaceFolder}/include",
                     "/home/mitt-unix/Desktop/Geant4/G4-install/include/Geant4",
-                    "/home/mitt-unix/Desktop/root/include"
+                    "/home/mitt-unix/Desktop/Geant4/G4-install/include/Geant4/**",
+                    "/home/mitt-unix/Desktop/root/include",
+                    "/home/mitt-unix/Desktop/root/include/**",
+                    "/usr/include/ROOT",
+                    "/usr/include/ROOT/**"
                 ],
                 "limitSymbolsToIncludedHeaders": true
             },
@@ -17,7 +21,11 @@
                 "${workspaceFolder}/src",
                 "${workspaceFolder}/include",
                 "/home/mitt-unix/Desktop/Geant4/G4-install/include/Geant4",
-                "/home/mitt-unix/Desktop/root/include"
+                "/home/mitt-unix/Desktop/Geant4/G4-install/include/Geant4/**",
+                "/home/mitt-unix/Desktop/root/include",
+                "/home/mitt-unix/Desktop/root/include/**",
+                "/usr/include/ROOT",
+                "/usr/include/ROOT/**"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/gcc",
