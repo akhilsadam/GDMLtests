@@ -78,6 +78,7 @@ B3aRunAction::B3aRunAction(G4VUserDetectorConstruction* patient, B3PrimaryGenera
 
   fHistoManager = new HistoManager(fpatient);
   fPrimary = kin;
+  CrossSectionTrue = false;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -92,8 +93,16 @@ B3aRunAction::~B3aRunAction()
 void B3aRunAction::BeginOfRunAction(const G4Run* run)
 { 
   #ifdef CrossSectionTest
-	CrossSectionTester* cst = new CrossSectionTester();
-	cst->CSRunAction(run, (GDMLDetectorConstruction*) fpatient, fPrimary);
+    if(!CrossSectionTrue)
+    {
+    	CrossSectionTester* cst = new CrossSectionTester();
+    	cst->CSRunAction(run, (GDMLDetectorConstruction*) fpatient, fPrimary);
+      G4cout << "### CROSS SECTIONS CREATED " << G4endl;
+      G4cout << "### UPDATING MPT ..." << G4endl;
+      ((GDMLDetectorConstruction*) fpatient)->UPDATE_GEO_MPT();
+      G4cout << "### MPT UPDATED" << G4endl;
+      CrossSectionTrue = true;
+    }
   #endif
 
 

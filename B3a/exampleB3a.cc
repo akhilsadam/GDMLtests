@@ -26,7 +26,6 @@
 //
 /// \file exampleB3a.cc
 /// \brief Main program of the B3a example
-
 #include "G4Types.hh"
 
 #ifdef G4MULTITHREADED
@@ -81,7 +80,7 @@ int main(int argc,char** argv)
   //
 #ifdef G4MULTITHREADED
   G4MTRunManager* runManager = new G4MTRunManager;
-  runManager->SetNumberOfThreads(1);
+  runManager->SetNumberOfThreads(8);
 #else
   G4RunManager* runManager = new G4RunManager;
 #endif
@@ -94,9 +93,9 @@ int main(int argc,char** argv)
   //B3DetectorConstruction* det = new B3DetectorConstruction;
   //B3DetectorConstruction detr = (B3DetectorConstruction) (*(new GDMLDetectorConstruction(parser.GetWorldVolume())));
   //B3DetectorConstruction* det = &detr;
-
-  G4VUserDetectorConstruction* det = new GDMLDetectorConstruction(parser, parser.GetWorldVolume());
-
+  G4VPhysicalVolume* detVol0 = parser.GetWorldVolume();
+  G4VUserDetectorConstruction* det = new GDMLDetectorConstruction(parser, detVol0);
+  
   runManager->SetUserInitialization(det);
   //
   //runManager->SetUserInitialization(new B3PhysicsList);

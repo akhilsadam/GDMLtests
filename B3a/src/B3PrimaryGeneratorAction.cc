@@ -78,6 +78,19 @@ void B3PrimaryGeneratorAction::CSTtest(double E)
     fParticleGun->SetParticleEnergy(E);  //visible spectrum between 400-700 nm  
     //fParticleGun->GeneratePrimaryVertex(anEvent);
 }
+void B3PrimaryGeneratorAction::RESETtest()
+{
+  #ifdef MultipleStripCell
+  G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();
+  G4int n_particle = 1;
+  fParticleGun  = new G4ParticleGun(n_particle);
+  G4ParticleDefinition* particle = particleTable->FindParticle("gamma");//FindParticle("chargedgeantino");
+  fParticleGun->SetParticleDefinition(particle);
+  fParticleGun->SetParticlePosition(G4ThreeVector(0.,0.,0.));
+  fParticleGun->SetParticleEnergy(511*keV);  //SetParticleEnergy(1*eV); between 70-250 MeV   
+  fParticleGun->SetParticleMomentumDirection(G4ThreeVector(-1,0,0));
+  #endif
+}
 
 
 void B3PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)

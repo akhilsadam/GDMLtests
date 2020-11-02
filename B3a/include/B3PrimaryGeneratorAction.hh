@@ -53,7 +53,8 @@ class B3PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction
 
     const G4ParticleGun* GetParticleGun() const { return fParticleGun; }
     void CSTtest(double E);
-  
+    void RESETtest();
+
   private:
     G4ParticleGun*  fParticleGun;
 };

@@ -40,6 +40,7 @@ file(GLOB headers /usr/local/xerces/include/*.hh)
 add_executable(exampleB3a exampleB3a.cc ${sources} ${headers})
 target_link_libraries(exampleB3a ${Geant4_LIBRARIES})
 target_link_libraries(exampleB3a ${XercesC_LIBRARIES})
+target_link_libraries(exampleB3a ${ROOT_LIBRARIES})
 
 #----------------------------------------------------------------------------
 # Copy all scripts to the build directory, i.e. the directory in which we
