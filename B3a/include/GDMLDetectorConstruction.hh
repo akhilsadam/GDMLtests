@@ -61,7 +61,7 @@ class GDMLDetectorConstruction : public DetectorConstruction
 		G4RunManager* runManager = G4RunManager::GetRunManager();
 		// Open geometry for the physical volume to be modified ...
 		G4GeometryManager* geo = G4GeometryManager::GetInstance();
-		//geo->OpenGeometry(World);
+		geo->OpenGeometry(World);
 		// Modify dimension of the solid ...
 		//
 		//World->GetLogicalVolume()->ClearDaughters();
@@ -69,17 +69,17 @@ class GDMLDetectorConstruction : public DetectorConstruction
 		//Parser->Clear();
 		//Parser->Read("gdml.gdml",false);
 		//World = Parser->GetWorldVolume();
-		//WorldBuild((*Parser), World);
+		WorldBuild((*Parser), World);
 		//WorldMod();
 		
 		// Close geometry for the portion modified ...
 		//
-		//geo->CloseGeometry(World);
-		//G4VVisManager* visManager = G4VVisManager::GetConcreteInstance();
-		//visManager->GeometryHasChanged();
-		//runManager->PhysicsHasBeenModified();
-		//runManager->GeometryHasBeenModified();
-		//runManager->ReinitializeGeometry(true);		
+		geo->CloseGeometry(World);
+		G4VVisManager* visManager = G4VVisManager::GetConcreteInstance();
+		visManager->GeometryHasChanged();
+		runManager->PhysicsHasBeenModified();
+		runManager->GeometryHasBeenModified();
+		runManager->ReinitializeGeometry(true);		
 		//EJ208->GetMaterialPropertiesTable()->DumpTable();
 	}
    	vector<string> split (const string &s, char delim) {

@@ -41,7 +41,6 @@ public: void CSRunAction(const G4Run* runI,GDMLDetectorConstruction* fDetectorI,
     fileOutputNameC = &fileOutputName[0];
     FILE* pfile = fopen(fileOutputNameC, "w");
     fclose(pfile);
-    delete pfile;
   aRun = runI;
   aDetector = fDetectorI;
   aPrimary = fPrimaryI;
