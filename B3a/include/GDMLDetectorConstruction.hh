@@ -55,6 +55,7 @@ class GDMLDetectorConstruction : public DetectorConstruction
   public:
 	G4Material* EJ208;
 	G4Material* Air;
+	double rho_pvt = 1.023*g/cm3;
 	void UPDATE_GEO_MPT()
 	{
 		MPT_UPDATE = 1;
@@ -69,8 +70,8 @@ class GDMLDetectorConstruction : public DetectorConstruction
 		//Parser->Clear();
 		//Parser->Read("gdml.gdml",false);
 		//World = Parser->GetWorldVolume();
-		WorldBuild((*Parser), World);
-		//WorldMod();
+		//WorldBuild((*Parser), World);
+		WorldMod();
 		
 		// Close geometry for the portion modified ...
 		//
@@ -79,7 +80,7 @@ class GDMLDetectorConstruction : public DetectorConstruction
 		visManager->GeometryHasChanged();
 		runManager->PhysicsHasBeenModified();
 		runManager->GeometryHasBeenModified();
-		runManager->ReinitializeGeometry(true);		
+		//runManager->ReinitializeGeometry(true);		
 		//EJ208->GetMaterialPropertiesTable()->DumpTable();
 	}
    	vector<string> split (const string &s, char delim) {
@@ -94,8 +95,10 @@ class GDMLDetectorConstruction : public DetectorConstruction
 	void WorldMod()
 	{
 		G4cout << "--//-------------------------------------------WORLDMODDING-------------------------------------------//--" << G4endl;
+
+			//if visible, (3.105*eV to 1.774*eV), Att length = 400NM! - override.
 		//----------------------------------------------------------------------ATT READIN------------------------------------------------////
-		/*	vector<G4double> att_length_ejRV= *new vector<G4double>();
+			vector<G4double> att_length_ejRV= *new vector<G4double>();
 			vector<G4double> PhotonEnergyRV= *new vector<G4double>();
 			vector<G4double> NPhotonEnergyRV = *new vector<G4double>();
 			vector<G4double> rayScr_length_pvtRV = *new vector<G4double>();
@@ -144,7 +147,7 @@ class GDMLDetectorConstruction : public DetectorConstruction
 					}
 					else
 					{
-						en = G4double(stod(val[0]));
+						en = G4double(stod(val[0]))*MeV;
 						//G4cout << val.size() << " " << en << G4endl; //size
 						PhotonEnergyRV.push_back(en);
 						NPhotonEnergyRV.push_back(en);
@@ -153,6 +156,13 @@ class GDMLDetectorConstruction : public DetectorConstruction
 						rS_l = rayScr_CS/(rho_pvt);
 						att_l = att_CS/(rho_pvt);
 						//G4cout << "2nd SET" << G4endl;
+						if((en<(3.105*eV)) && (en>(1.774*eV)))
+						{
+							att_l = 400*cm;
+							//G4cout << "MODIFIED OPTICAL ATTENUATION." << G4endl;
+						}
+						
+
 					}
 								
 					rayScr_length_pvtRV.push_back(rS_l);
@@ -172,13 +182,14 @@ class GDMLDetectorConstruction : public DetectorConstruction
 			memcpy( att_length_ejR, &att_length_ejRV[0], sizeof(double) * att_length_ejRV.size() );
 			memcpy( PhotonEnergyR, &PhotonEnergyRV[0], sizeof(double) * PhotonEnergyRV.size() );
 			memcpy( rayScr_length_pvtR, &rayScr_length_pvtRV[0], sizeof(double) * rayScr_length_pvtRV.size() );
-			memcpy( NPhotonEnergyR, &NPhotonEnergyRV[0], sizeof(double) * NPhotonEnergyRV.size() );	*/
+			memcpy( NPhotonEnergyR, &NPhotonEnergyRV[0], sizeof(double) * NPhotonEnergyRV.size() );
 		//----------------------------------------------------------------------RED MAT----------------------------------------------------////
-			//EJ208->GetMaterialPropertiesTable()->RemoveProperty("ABSLENGTH");
-			//EJ208->GetMaterialPropertiesTable()->RemoveProperty("RAYLEIGH");
-			//EJ208->GetMaterialPropertiesTable()->AddProperty("ABSLENGTH",PhotonEnergyR,att_length_ejR,sz0);// MODIFIED WITH DATA
+			EJ208->GetMaterialPropertiesTable()->RemoveProperty("ABSLENGTH");
+			EJ208->GetMaterialPropertiesTable()->RemoveProperty("RAYLEIGH");
+			EJ208->GetMaterialPropertiesTable()->AddProperty("ABSLENGTH",PhotonEnergyR,att_length_ejR,sz0);// MODIFIED WITH DATA
+			EJ208->GetMaterialPropertiesTable()->AddProperty("RAYLEIGH",PhotonEnergyR,rayScr_length_pvtR,sz0);// MODIFIED WITH DATA
 		int i = 0;
-		G4NistManager* man = G4NistManager::Instance();
+		//G4NistManager* man = G4NistManager::Instance();
 		while(true)
 		{
 			G4VPhysicalVolume* V = World->GetLogicalVolume()->GetDaughter(i);
@@ -187,7 +198,8 @@ class GDMLDetectorConstruction : public DetectorConstruction
 				string name = V->GetName();
 				if(name.find("EJ208") != std::string::npos)
 				{
-					V->GetLogicalVolume()->SetMaterial(man->FindMaterial("G4_AIR"));
+					//V->GetLogicalVolume()->SetMaterial(man->FindMaterial("G4_AIR"));
+					V->GetLogicalVolume()->SetMaterial(EJ208);
 				}
 			}
 			else
@@ -224,7 +236,6 @@ class GDMLDetectorConstruction : public DetectorConstruction
 	Vikuiti->AddElement(H,8);
 	Vikuiti->GetIonisation()->SetBirksConstant(0.126*mm/MeV);
 
-	double rho_pvt = 1.023*g/cm3;
 	G4Material* PVT = new G4Material("PVT", rho_pvt, 2);
 	PVT->AddElement(C,9);
 	PVT->AddElement(H,10);
@@ -355,7 +366,7 @@ class GDMLDetectorConstruction : public DetectorConstruction
 	if(MPT_UPDATE<0)
 	{
 		scintMPT->AddProperty("ABSLENGTH",PhotonEnergyR,att_length_ejR,sze);// MODIFIED WITH DATA
-		scintMPT->AddProperty("RAYLEIGH",NPhotonEnergyR,rayScr_length_pvtR,sz0);
+		//scintMPT->AddProperty("RAYLEIGH",NPhotonEnergyR,rayScr_length_pvtR,sz0); turn this off for now!
 	}
 	else
 	{
@@ -379,11 +390,11 @@ class GDMLDetectorConstruction : public DetectorConstruction
 	EJ208->SetMaterialPropertiesTable(scintMPT);
 	Vikuiti->SetMaterialPropertiesTable(vkMPT);
 
-	if(MPT_UPDATE>0)
+	/*if(MPT_UPDATE>0)
 	{
-		//WorldMod();
+		WorldMod();
 		return;
-	}
+	}*/
 //----------------------------------------------------------------------SETSURF----------------------------------------------------////
 	surfVKMPT->AddProperty("REFLECTIVITY", PhotonEnergy, reflectivity_vk, n);
 	surfEJMPT->AddProperty("REFLECTIVITY", PhotonEnergy, reflectivity_vk, n); // WHAT is the EJ reflectivity?

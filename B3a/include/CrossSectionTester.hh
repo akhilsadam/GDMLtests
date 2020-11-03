@@ -47,16 +47,16 @@ public: void CSRunAction(const G4Run* runI,GDMLDetectorConstruction* fDetectorI,
   analysisManager = G4AnalysisManager::Instance();
   //CSRun();
   	//set up photon tests
- double en = 10*eV;
+ double en = 1*eV;
  double eM = 1*MeV;
- int maxN = 50;//1000;
- //double base = exp(log(eM/en)/(1.0*maxN));
+ int maxN = 500;
+ double expStep = (log(eM/en)/(1.0*maxN));
  for(int i = 0; i<=maxN; i++)
   { 
 	//double deltaL = Lmax - Lmin;
 	//double L = (((1.0*i)/maxN)*deltaL) + Lmin;
   	//aPrimary->CSTtest(EoL/(L));
-	energyP = (i*(eM-en)/maxN)+en;
+	energyP = (en*exp(expStep*i));//(i*(eM-en)/maxN)+en;
 	aPrimary->CSTtest(energyP);
 	//G4cout << "Wavelength = " << L << " nm" << G4endl;
 	CSRun();

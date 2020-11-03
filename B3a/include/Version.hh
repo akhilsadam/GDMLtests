@@ -1,6 +1,6 @@
 #include "G4PhysicalConstants.hh"
 #include "G4SystemOfUnits.hh"
-
+#include "G4GlobalConfig.hh"
 
 #ifndef VERSION
 #define VERSION
