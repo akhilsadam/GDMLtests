@@ -51,6 +51,8 @@ G4int fCollID_cryst_y;*/
 
 G4int detL_npho;
 G4int detR_npho;
+std::mutex foo22;
+std::mutex barL22;
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 B3aEventAction::B3aEventAction(B3aRunAction* runAction)
@@ -79,9 +81,10 @@ void B3aEventAction::BeginOfEventAction(const G4Event* /*evt*/)
 
 void B3aEventAction::EndOfEventAction(const G4Event* evt )
 {
+  std::lock(foo22,barL22);
   G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();
   G4int nx = 3;
-  G4int ny = 4;
+  G4int ny = 16;
   G4double Dx = 7.74*cm;
   G4double Dy = 10.32*cm;
   G4int entry;
@@ -90,7 +93,10 @@ void B3aEventAction::EndOfEventAction(const G4Event* evt )
   G4int nevents = fRunAction->GetNevents();
 
   G4int scintiPhot=0;
-  G4int id = 23;
+  G4int id = 25;
+  G4int id2D = 18;
+  G4int leftT = 0;
+  G4int rightT = 0;
 
   for(int x = 0; x<(nx); x++)
   {
@@ -105,16 +111,21 @@ void B3aEventAction::EndOfEventAction(const G4Event* evt )
       {
         //G4cout << " Filling " << G4endl;
         analysisManager->FillH2(6, (x),(y), (1.0) );
-        analysisManager->FillH2(12, (x),(y), (left) );
-        analysisManager->FillH2(13, (x),(y), (right) );
-        analysisManager->FillH2(11, (right),(left), (1) ); //P@1 VS P@2
-        analysisManager->FillH1(id, entry); //(entry)
       }
+
       if(scintiPhot>0) //scintillator
       {
         analysisManager->FillH1(id+5, (scintiPhot) );
+        analysisManager->FillH2(id2D, (scintiPhot), ((1.0*entry)/scintiPhot) );
       }
+      analysisManager->FillH2(12, (x),(y), (left) );
+      analysisManager->FillH2(13, (x),(y), (right) );
+      analysisManager->FillH2(11, (right),(left), (1) ); //P@1 VS P@2
+      analysisManager->FillH1(id, entry); //(entry)
+      leftT+=left;
+      rightT+=right;
       id+=6;
+      id2D+=1;
     }
   }
   G4int photons = (G4int) analysisManager->GetH1(9)->bin_entries(0);
@@ -122,14 +133,16 @@ void B3aEventAction::EndOfEventAction(const G4Event* evt )
   {
     analysisManager->FillH1(10, 0.5, (1.0/nevents) );
   }
-
+  analysisManager->FillH1(23, leftT);
+  analysisManager->FillH1(24, rightT);
 
   analysisManager->GetH2(4)->reset();
   analysisManager->GetH2(5)->reset();
   analysisManager->GetH2(17)->reset();
   analysisManager->GetH1(9)->reset();
 
-
+  foo22.unlock();
+  barL22.unlock();
 
 /*
  if ( detL_npho <=0 ) {

@@ -63,7 +63,8 @@ private:
     HistoManager* fHistoManager;
     G4VUserDetectorConstruction* fpatient;
     B3PrimaryGeneratorAction* fPrimary;
-    bool CrossSectionTrue;
+    static bool CrossSectionTrue;
+
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

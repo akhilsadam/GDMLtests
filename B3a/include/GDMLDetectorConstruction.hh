@@ -54,7 +54,9 @@ class GDMLDetectorConstruction : public DetectorConstruction
 	int MPT_UPDATE;
   public:
 	G4Material* EJ208;
+	G4Material* Vikuiti;
 	G4Material* Air;
+	G4Material* TPB;
 	double rho_pvt = 1.023*g/cm3;
 	void UPDATE_GEO_MPT()
 	{
@@ -82,7 +84,24 @@ class GDMLDetectorConstruction : public DetectorConstruction
 		runManager->GeometryHasBeenModified();
 		//runManager->ReinitializeGeometry(true);		
 		//EJ208->GetMaterialPropertiesTable()->DumpTable();
+		//Vikuiti->GetMaterialPropertiesTable()->DumpTable();
+		//Air->GetMaterialPropertiesTable()->DumpTable();
 	}
+	G4double length (G4double v[],int size) {
+		G4double len = 0;
+		for(int i =0;i<size;i++)
+		{
+			len+=(v[i]);
+		}
+		return len;
+   	}
+	void normalize (G4double v[],int size) {
+		G4double len = length(v,size);
+		for(int i =0;i<size;i++)
+		{
+			v[i]=v[i]/len;
+		}
+   	}
    	vector<string> split (const string &s, char delim) {
     	vector<string> result;
     	stringstream ss (s);
@@ -196,10 +215,18 @@ class GDMLDetectorConstruction : public DetectorConstruction
 			if(V!=NULL)
 			{
 				string name = V->GetName();
-				if(name.find("EJ208") != std::string::npos)
+				#ifdef SingleStrip
+				string name0 = "EJ208(1)";
+				#else
+				string name0 = "EJ208";
+				#endif
+				if(name.find(name0) != std::string::npos)
 				{
 					//V->GetLogicalVolume()->SetMaterial(man->FindMaterial("G4_AIR"));
 					V->GetLogicalVolume()->SetMaterial(EJ208);
+					#ifdef SingleStrip
+					G4cout <<"updated EJ208!" <<G4endl;
+					#endif
 				}
 			}
 			else
@@ -209,7 +236,7 @@ class GDMLDetectorConstruction : public DetectorConstruction
 			
 			i+=1;
 		}
-		World->GetLogicalVolume()->GetDaughter(0)->GetLogicalVolume()->GetMaterial()->GetMaterialPropertiesTable()->DumpTable();
+		//World->GetLogicalVolume()->GetDaughter(0)->GetLogicalVolume()->GetMaterial()->GetMaterialPropertiesTable()->DumpTable();
 	}
 	void WorldBuild(G4GDMLParser& parser, G4VPhysicalVolume *setWorld )
    {
@@ -231,7 +258,7 @@ class GDMLDetectorConstruction : public DetectorConstruction
 	G4Material* LeadM = new G4Material("LeadM", 207.2*g/cm3, 1);
 	LeadM->AddElement(Pb,1);
 
-	G4Material* Vikuiti = new G4Material("Vikuiti", 1.07*g/cm3, 2);
+	Vikuiti = new G4Material("Vikuiti", 1.07*g/cm3, 2);
 	Vikuiti->AddElement(C,8);
 	Vikuiti->AddElement(H,8);
 	Vikuiti->GetIonisation()->SetBirksConstant(0.126*mm/MeV);
@@ -240,6 +267,12 @@ class GDMLDetectorConstruction : public DetectorConstruction
 	PVT->AddElement(C,9);
 	PVT->AddElement(H,10);
 	PVT->GetIonisation()->SetBirksConstant(0.1955*mm/MeV);
+
+	TPB = new G4Material("TPB", 1.079*g/cm3, 2);
+	TPB->AddElement(C,28);
+	TPB->AddElement(H,22);
+	//TPB->GetIonisation()->SetBirksConstant(0.1955*mm/MeV); need to set Birks' constant?
+
 //----------------------------------------------------------------------MIX MAT----------------------------------------------------////
 	#ifndef PVTTest
 		EJ208 = new G4Material("EJ208",11.33*g/cm3,2);
@@ -250,14 +283,26 @@ class GDMLDetectorConstruction : public DetectorConstruction
 	#endif
 //----------------------------------------------------------------------MAT TABLES------------------------------------------------////
 	const G4int n = 6;
-
+	const G4int n2 = 10;
 	G4double PhotonEnergy[n] = {3.105*eV,2.95714*eV,2.855*eV,2.7*eV,2.5875*eV,2.388*eV}; //visible spectrum (400,420,435,460,480,520)nm
-	
+	G4double TPBPhotonEnergy[n2] = {12.3985*eV,6.19926*eV,4.1328*eV,3.5424*eV,3.105*eV,2.95714*eV,2.855*eV,2.7*eV,2.5875*eV,2.388*eV};//visible spectrum (100,200,300,350,400,420,435,460,480,520)nm
+
 	G4double refractive_index_vk[n] = {1.6,1.6,1.6,1.6,1.6,1.6};
 	G4double att_length_vk[n] = {400*cm,400*cm,400*cm,400*cm,400*cm,400*cm};
 
 	G4double refractive_index_ej[n] = {1.58,1.58,1.58,1.58,1.58,1.58};
 	G4double att_length_ej[n] = {400*cm,400*cm,400*cm,400*cm,400*cm,400*cm};
+
+	//Spectroscopic and travelling-wave lasing characterisation of tetraphenylbenzidine and di-naphtalenyl-diphenylbenzidine
+	//Measurements of the intrinsic quantum efficiency and absorption length of tetraphenyl butadiene thin films in the vacuum ultraviolet regime
+	G4double refractive_index_tpb[n2] = {1.67,1.67,2.2,1.79,1.9,1.8,1.8,1.79,1.75,1.72};// the following values are preliminary from articles above - needs updating!
+	G4double att_length_tpb[n2] = {100*nm,100*nm,100*nm,31.6*nm,2000*nm,10000*nm,20000*nm,1*mm,1*mm,1*mm};
+	G4double ray_length_tpb[n2] = {10*m,10*m,10*m,2.75*um,2.75*um,2.75*um,2.75*um,2.75*um,2.75*um,2.75*um};
+	G4double em_tpb[n2] = {0,0,0,0,0.00665,0.013,0.012,0.008,0.004,0.002};
+	normalize(em_tpb,n2);
+	G4double tc_tpb = 3*ns;
+	G4double reflectivity_tpb[n2] = {1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0};
+	G4double efficiency2[n2] = {1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0};
 //----------------------------------------------------------------------ATT READIN------------------------------------------------////
 	vector<G4double> att_length_ejRV(begin(att_length_ej), end(att_length_ej));
 	vector<G4double> PhotonEnergyRV(begin(PhotonEnergy), end(PhotonEnergy));
@@ -358,11 +403,20 @@ class GDMLDetectorConstruction : public DetectorConstruction
 	G4MaterialPropertiesTable* scintMPT = new G4MaterialPropertiesTable();
 	G4MaterialPropertiesTable* surfVKMPT = new G4MaterialPropertiesTable();
 	G4MaterialPropertiesTable* surfEJMPT = new G4MaterialPropertiesTable();
+	G4MaterialPropertiesTable* tpbMPT = new G4MaterialPropertiesTable();
+	G4MaterialPropertiesTable* surfTPBMPT = new G4MaterialPropertiesTable();
 
 	airMPT->AddProperty("RINDEX", PhotonEnergy,refractive_index_air,n);
 	vkMPT->AddProperty("RINDEX", PhotonEnergy,refractive_index_vk,n);
 	vkMPT->AddProperty("ABSLENGTH", PhotonEnergy,att_length_vk,n);
 	scintMPT->AddProperty("RINDEX", PhotonEnergy,refractive_index_ej,n);
+
+	tpbMPT->AddProperty("RINDEX", TPBPhotonEnergy,refractive_index_tpb,n2);
+	tpbMPT->AddProperty("WLSABSLENGTH", TPBPhotonEnergy,att_length_tpb,n2);
+	tpbMPT->AddProperty("WLSCOMPONENT", TPBPhotonEnergy,em_tpb,n2);
+	tpbMPT->AddConstProperty("WLSTIMECONSTANT",tc_tpb);
+	//tpbMPT->AddProperty("RAYLEIGH", TPBPhotonEnergy,ray_length_tpb,n2); should we use Rayleigh?
+
 	if(MPT_UPDATE<0)
 	{
 		scintMPT->AddProperty("ABSLENGTH",PhotonEnergyR,att_length_ejR,sze);// MODIFIED WITH DATA
@@ -398,14 +452,19 @@ class GDMLDetectorConstruction : public DetectorConstruction
 //----------------------------------------------------------------------SETSURF----------------------------------------------------////
 	surfVKMPT->AddProperty("REFLECTIVITY", PhotonEnergy, reflectivity_vk, n);
 	surfEJMPT->AddProperty("REFLECTIVITY", PhotonEnergy, reflectivity_vk, n); // WHAT is the EJ reflectivity?
+	surfTPBMPT->AddProperty("REFLECTIVITY", PhotonEnergy, reflectivity_tpb, n2); 
 	surfVKMPT->AddProperty("EFFICIENCY", PhotonEnergy, efficiency, n);
 	surfEJMPT->AddProperty("EFFICIENCY", PhotonEnergy, efficiency, n);
+	surfTPBMPT->AddProperty("EFFICIENCY", PhotonEnergy, efficiency2, n2); //NO Quantum efficiency implementation yet!
 	surfVKMPT->AddProperty("RINDEX", PhotonEnergy,refractive_index_vk,n);
 	surfEJMPT->AddProperty("RINDEX", PhotonEnergy,refractive_index_ej,n);
-
+	surfTPBMPT->AddProperty("RINDEX", PhotonEnergy,refractive_index_tpb,n2);
+	
 	G4OpticalSurface* surfVK = new G4OpticalSurface("surfVK");
 	G4OpticalSurface* surfEJ = new G4OpticalSurface("surfEJ");
+	G4OpticalSurface* surfTPB = new G4OpticalSurface("surfTPB");
 
+	G4double sigma_alpha_polish_tpb = 0.01;
 	#ifndef ReflectionDisable
 	G4double sigma_alpha_ground = 0.209439; //12deg., ground
 	#ifndef SSSpecularReflectionTest
@@ -416,12 +475,18 @@ class GDMLDetectorConstruction : public DetectorConstruction
 	G4double specularlobe[n] = {1.0,1.0,1.0,1.0,1.0,1.0}; //all specular lobe (microfacet reflections) // test with specular spike (perfectly smooth surface!)
 	G4double specularspike[n] = {0.0,0.0,0.0,0.0,0.0,0.0};
 	G4double backscatter[n] = {0.0,0.0,0.0,0.0,0.0,0.0};
+	G4double specularlobe2[n2] = {1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0}; //all specular lobe (microfacet reflections) // test with specular spike (perfectly smooth surface!)
+	G4double specularspike2[n2] = {0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0};
+	G4double backscatter2[n2] = {0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0};
 	surfVKMPT->AddProperty("SPECULARLOBECONSTANT",PhotonEnergy,specularlobe,n);
 	surfVKMPT->AddProperty("SPECULARSPIKECONSTANT",PhotonEnergy,specularspike,n);
 	surfVKMPT->AddProperty("BACKSCATTERCONSTANT",PhotonEnergy,backscatter,n);
 	surfEJMPT->AddProperty("SPECULARLOBECONSTANT",PhotonEnergy,specularlobe,n);
 	surfEJMPT->AddProperty("SPECULARSPIKECONSTANT",PhotonEnergy,specularspike,n);
 	surfEJMPT->AddProperty("BACKSCATTERCONSTANT",PhotonEnergy,backscatter,n);
+	surfTPBMPT->AddProperty("SPECULARLOBECONSTANT",PhotonEnergy,specularlobe2,n2);
+	surfTPBMPT->AddProperty("SPECULARSPIKECONSTANT",PhotonEnergy,specularspike2,n2);
+	surfTPBMPT->AddProperty("BACKSCATTERCONSTANT",PhotonEnergy,backscatter2,n2);
 	surfVK->SetType(dielectric_metal);
 	surfVK->SetModel(unified);
 	surfVK->SetFinish(ground);
@@ -432,6 +497,11 @@ class GDMLDetectorConstruction : public DetectorConstruction
 	surfEJ->SetFinish(ground);
 	surfEJ->SetSigmaAlpha(sigma_alpha_polish);
 	surfEJ->SetMaterialPropertiesTable(surfEJMPT);
+	surfTPB->SetType(dielectric_dielectric);
+	surfTPB->SetModel(unified);
+	surfTPB->SetFinish(ground);
+	surfTPB->SetSigmaAlpha(sigma_alpha_polish_tpb);
+	surfTPB->SetMaterialPropertiesTable(surfTPBMPT);
 	#endif
 
 	#ifdef LYSOTest
@@ -446,6 +516,7 @@ class GDMLDetectorConstruction : public DetectorConstruction
 	G4VisAttributes* red_col = new G4VisAttributes(G4Color(0.6,0.4,0.4,1));
 	G4VisAttributes* blue_col = new G4VisAttributes(G4Color(0.4,0.4,0.6,1));
 	G4VisAttributes* det_col = new G4VisAttributes(G4Color(0.8,0.8,1.0,1));
+	G4VisAttributes* tpb_col = new G4VisAttributes(G4Color(0.9,0.0,0.0,1));
 	G4VisAttributes* invis_col = new G4VisAttributes(G4Color(0.0,0.0,0.0,0));
 
 
@@ -517,6 +588,16 @@ class GDMLDetectorConstruction : public DetectorConstruction
 
 	#endif
 	#ifdef SingleStrip
+
+		#ifdef LEGEND
+			G4Box* tpb= new G4Box("TPB",2.54*cm/2.0,5*um/2.0,50*cm);
+			G4LogicalVolume* lc = new G4LogicalVolume(tpb,TPB,"TPB");
+			G4ThreeVector postpb = G4ThreeVector(-5.14*cm,(9.97*cm+2.5*um),50*cm);
+			lc->SetVisAttributes (tpb_col);
+			G4LogicalSkinSurface* TPBsurf = new G4LogicalSkinSurface("surfTPB_L",lc, surfTPB); 	
+			G4VPhysicalVolume* pC = new G4PVPlacement(0,postpb,"TPB", lc, World, false,0); //TPB film
+		#endif
+
 	#ifndef SSRefractionTest
 	
 

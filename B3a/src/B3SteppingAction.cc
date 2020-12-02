@@ -38,19 +38,17 @@
 #include "G4SteppingManager.hh"
 #include "G4RunManager.hh"
 #include "Randomize.hh"
-
 #include "DetectorConstruction.hh"
-
 //#include "B3DetectorConstruction.hh"
 #include "GDMLDetectorConstruction.hh"
-
 #include "B3aHistoManager.hh"
-
 #include "G4Step.hh"
 #include "G4Event.hh"
-
 #include "G4UnitsTable.hh"
 #include "G4SystemOfUnits.hh"
+
+#include  "G4OpBoundaryProcess.hh"
+
 std::mutex foo2;
 std::mutex barL2;
 G4int B3SteppingAction::id = 0;
@@ -72,7 +70,7 @@ void B3SteppingAction::UserSteppingAction(const G4Step* step)
 {
  	std::lock(foo2,barL2);
  	G4double edep = (step->GetTotalEnergyDeposit())/keV;
-
+	G4Track* track = step->GetTrack();
  	G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();     
 
  	//longitudinal profile of deposited energy
@@ -84,7 +82,7 @@ void B3SteppingAction::UserSteppingAction(const G4Step* step)
  	G4ThreeVector P1 = prePoint ->GetPosition();
  	G4ThreeVector P2 = postPoint->GetPosition();
  	G4ThreeVector point = P1 + G4UniformRand()*(P2 - P1);
-	if (step->GetTrack()->GetDefinition()->GetPDGCharge() == 0.) point = P2;
+	if (track->GetDefinition()->GetPDGCharge() == 0.) point = P2;
 	G4double x = P2.x();
  	G4double y = P2.y();
  	G4double z = P2.z();
@@ -99,11 +97,50 @@ void B3SteppingAction::UserSteppingAction(const G4Step* step)
  	analysisManager->FillH2(0, xshifted, yshifted, edep);
  	analysisManager->FillH3(0, xshifted, yshifted, zshifted, edep);
 
- 	G4double Ox = -2.58*cm;
- 	G4double Oy = 4.83*cm;
+	G4double Ox = -2.58*cm;
+	G4double Oy = 4.83*cm;
 	G4double Dx = 7.74*cm;
 	G4double Dy = 10.32*cm;
+	G4double Dz = 100*cm;
+	G4double Oz = Dz/2;
 
+	if(track->GetParticleDefinition()->GetParticleName() == "opticalphoton")
+	{
+		if(track->GetTrackStatus() == fStopAndKill)
+		{
+			G4double x  = track->GetPosition().x();
+       		G4double y  = track->GetPosition().y();
+       		G4double z  = track->GetPosition().z();
+			analysisManager->FillH3(1,x-Ox,y-Oy,z-Oz,1);
+			if(prePoint->GetStepStatus() == fGeomBoundary)
+			{
+				analysisManager->FillH1(2,1);
+				const G4VProcess* pds = postPoint->GetProcessDefinedStep();
+				if(pds)
+				{
+					//cout << "PDS: " << pds->GetProcessName() << G4endl;
+					const std::string pdsN = pds->GetProcessName();
+					if(pdsN.compare("Transportation")==0)
+					{
+						analysisManager->FillH1(3,0.5);
+					}
+					else if(pdsN.compare("OpAbsorption")==0)
+					{
+						analysisManager->FillH1(3,0.25);
+					}
+					else
+					{
+						analysisManager->FillH1(3,0.75);
+					}
+				}
+			}
+			else
+			{
+				analysisManager->FillH1(2,0);
+			}
+		}
+	}
+	
  	const std::vector< const G4Track* >* secondaries = step->GetSecondaryInCurrentStep();  
 	 const int size = secondaries->size();
  	//std::vector< G4double> times = std::vector<G4double>();
@@ -268,6 +305,31 @@ void B3SteppingAction::UserSteppingAction(const G4Step* step)
 			analysisManager->FillH1(18,  lambdaP, 1);
 		}
 	}
+
+	/*
+	// Retrieve the status of the photon (From Kyle and Chris's code)
+  	G4OpBoundaryProcessStatus theStatus = Undefined;
+  	G4ProcessManager* OpManager = G4OpticalPhoton::OpticalPhoton()->GetProcessManager();
+	if (OpManager) 
+	{
+    	G4int MAXofPostStepLoops = OpManager->GetPostStepProcessVector()->entries();
+    	G4ProcessVector* fPostStepDoItVector = OpManager->GetPostStepProcessVector(typeDoIt);
+		for ( G4int i=0; i<MAXofPostStepLoops; i++) 
+		{
+			G4VProcess* fCurrentProcess = (*fPostStepDoItVector)[i];
+			G4OpBoundaryProcess* fOpProcess = dynamic_cast<G4OpBoundaryProcess*>(fCurrentProcess);
+			if (fOpProcess)
+			{
+				theStatus = fOpProcess->GetStatus();
+				//if(theStatus == Absorption)
+				//G4cout << "------------------------// status: " << statusEnum[theStatus+1] << G4endl;
+				break;
+			}
+    	}
+		//G4cout << "NEW STEP" << "- ID : " << step->GetTrack()->GetTrackID() << G4endl;
+  	}*/
+
+
 	
 	foo2.unlock();
 	barL2.unlock();

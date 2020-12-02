@@ -36,7 +36,7 @@
 
 #include "Version.hh"
 #include "G4UImanager.hh"
-//#include "G4UIGAG.hh"
+#include "G4UIGAG.hh"
 #include "G4VisExecutive.hh"
 #include "G4UIExecutive.hh"
 #include "G4TScoreNtupleWriter.hh"
@@ -55,6 +55,7 @@
 #include "FTFP_BERT.hh"
 #include "G4OpticalPhysics.hh"
 #include "G4EmStandardPhysics_option4.hh"
+//#include "G4OpWLS.hh"
 
 
 #include "G4GDMLParser.hh"
@@ -65,12 +66,18 @@ int main(int argc,char** argv)
   G4GDMLParser parser;
 
   // Detect interactive mode (if no arguments) and define UI session
-  //
+
+  #ifdef VIEWPORT_ONLY
   G4UIExecutive* ui = 0;
-  //G4UIsession* ui = 0;
   if ( argc == 1 ) {
-    ui = new G4UIExecutive(argc, argv); //G4UIGAG();
+    ui = new G4UIExecutive(argc, argv);
   }
+  #else
+  G4UIsession* ui = 0;
+  if ( argc == 1 ) {
+    ui = new G4UIGAG();
+  }
+  #endif
 
   // Optionally: choose a different Random engine...
   //
@@ -80,7 +87,7 @@ int main(int argc,char** argv)
   //
 #ifdef G4MULTITHREADED
   G4MTRunManager* runManager = new G4MTRunManager;
-  runManager->SetNumberOfThreads(8);
+  runManager->SetNumberOfThreads(6);
 #else
   G4RunManager* runManager = new G4RunManager;
 #endif
@@ -113,6 +120,14 @@ int main(int argc,char** argv)
   opticalPhysics->SetTrackSecondariesFirst(kCerenkov,true);
   opticalPhysics->SetTrackSecondariesFirst(kScintillation,true);
   opticalPhysics->SetScintillationByParticleType(false);
+  
+  opticalPhysics->SetMaxNumPhotonsPerStep(100);
+  opticalPhysics->SetMaxBetaChangePerStep(10.0);
+
+  #ifdef LEGEND
+    opticalPhysics->SetWLSTimeProfile("exponential"); // not sure if this should be exponential or delta - need to verify!
+  #endif
+
 
   physicsList->RegisterPhysics(opticalPhysics);
   runManager->SetUserInitialization(physicsList);
@@ -163,6 +178,8 @@ int main(int argc,char** argv)
     #ifdef SingleStrip
       UImanager->ApplyCommand("/vis/filtering/trajectories/create/particleFilter");
       UImanager->ApplyCommand("/vis/filtering/trajectories/particleFilter-0/add opticalphoton");
+      //UImanager->ApplyCommand("/cuts/setLowEdge 0.00001 eV");
+      //UImanager->ApplyCommand("/run/initialize"); 
     #endif
     ui->SessionStart();
     delete ui;

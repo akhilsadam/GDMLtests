@@ -51,6 +51,11 @@
 #endif
 
 #include <time.h>
+
+std::mutex foo21;
+std::mutex barL21;
+bool B3aRunAction::CrossSectionTrue = true;
+
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 B3aRunAction::B3aRunAction(G4VUserDetectorConstruction* patient, B3PrimaryGeneratorAction* kin)
  : G4UserRunAction(),
@@ -75,10 +80,10 @@ B3aRunAction::B3aRunAction(G4VUserDetectorConstruction* patient, B3PrimaryGenera
   G4AccumulableManager* accumulableManager = G4AccumulableManager::Instance();
   accumulableManager->RegisterAccumulable(fGoodEvents);
   accumulableManager->RegisterAccumulable(fSumDose); 
-
   fHistoManager = new HistoManager(fpatient);
   fPrimary = kin;
   CrossSectionTrue = false;
+  
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -93,16 +98,19 @@ B3aRunAction::~B3aRunAction()
 void B3aRunAction::BeginOfRunAction(const G4Run* run)
 { 
   #ifdef CrossSectionTest
+  	std::lock(foo21,barL21);
     if(!CrossSectionTrue)
     {
     	CrossSectionTester* cst = new CrossSectionTester();
     	cst->CSRunAction(run, (GDMLDetectorConstruction*) fpatient, fPrimary);
-      G4cout << "### CROSS SECTIONS CREATED " << G4endl;
+      G4cout << "### CROSS SECTIONS CREATED " << CrossSectionTrue << G4endl;
       G4cout << "### UPDATING MPT ..." << G4endl;
       ((GDMLDetectorConstruction*) fpatient)->UPDATE_GEO_MPT();
       G4cout << "### MPT UPDATED" << G4endl;
       CrossSectionTrue = true;
     }
+    foo21.unlock();
+		barL21.unlock();
   #endif
 
 
@@ -133,13 +141,22 @@ void B3aRunAction::EndOfRunAction(const G4Run* run)
   G4AccumulableManager* accumulableManager = G4AccumulableManager::Instance();
   accumulableManager->Merge();
   // save histograms
+
   G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();
   if ( analysisManager->IsActive() ) {  
     G4double interacted = (analysisManager->GetH1(10)->bin_entries(0));
     G4cout << "INTERACTED " <<interacted <<G4endl;
+    if (IsMaster() && (interacted !=0))
+  {
+    G4int nx = 3;
+    G4int ny = 16;
+    G4double nStrips = 1.0*nx*ny;
     analysisManager->GetH2(6)->multiply(1.0/interacted);
     analysisManager->GetH2(12)->multiply(1.0/interacted);
     analysisManager->GetH2(13)->multiply(1.0/interacted);
+    //analysisManager->GetH2(23)->multiply(nStrips);
+    //analysisManager->GetH2(24)->multiply(nStrips);
+  }
     //#ifdef CST2
     //analysisManager->GetH2(19)->multiply(1.0/nofEvents);
     //#endif
@@ -147,6 +164,7 @@ void B3aRunAction::EndOfRunAction(const G4Run* run)
     analysisManager->Write();    
     analysisManager->CloseFile();
   }    
+  
 
 
   // Run conditions
@@ -168,11 +186,19 @@ void B3aRunAction::EndOfRunAction(const G4Run* run)
   if (IsMaster())
   {
     #ifdef SingleStrip
-    G4cout
-     << G4endl
-     << "--------------------End of Global Run------------------------"
-     << G4endl
-     << "  The run was " << (nofEvents*100) << " "<< partName;
+      #ifndef LEGEND
+        G4cout
+        << G4endl
+        << "--------------------End of Global Run------------------------"
+        << G4endl
+        << "  The run was " << (nofEvents*100) << " "<< partName;
+        #else
+        G4cout
+        << G4endl
+        << "--------------------End of Global Run------------------------"
+        << G4endl
+        << "  The run was " << (nofEvents) << " "<< partName;
+      #endif
     #endif
     #ifdef MultipleStripCell
     G4cout
@@ -195,12 +221,20 @@ void B3aRunAction::EndOfRunAction(const G4Run* run)
   }
   else
   {
-    #ifdef SingleStrip
-    G4cout
-     << G4endl
-     << "--------------------End of Local Run------------------------"
-     << G4endl
-     << "  The run was " << (nofEvents*100) << " "<< partName;
+#ifdef SingleStrip
+      #ifndef LEGEND
+        G4cout
+        << G4endl
+        << "--------------------End of Local Run------------------------"
+        << G4endl
+        << "  The run was " << (nofEvents*100) << " "<< partName;
+        #else
+        G4cout
+        << G4endl
+        << "--------------------End of Local Run------------------------"
+        << G4endl
+        << "  The run was " << (nofEvents) << " "<< partName;
+      #endif
     #endif
     #ifdef MultipleStripCell
     G4cout
@@ -210,12 +244,12 @@ void B3aRunAction::EndOfRunAction(const G4Run* run)
      << "  The run was " << nofEvents << " "<< partName;
     #endif
   }      
-  G4cout
+  /*G4cout
      << "; Nb of 'good' e+ annihilations: " << fGoodEvents.GetValue()  << G4endl
      << " Total dose in patient : " << G4BestUnit(fSumDose.GetValue(),"Dose") 
      << G4endl 
      << "------------------------------------------------------------" << G4endl 
-     << G4endl;
+     << G4endl;*/
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

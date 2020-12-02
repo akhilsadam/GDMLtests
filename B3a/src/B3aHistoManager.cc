@@ -89,8 +89,8 @@ void HistoManager::Book()
 "E-Deposition 2D (keV/mm)",
 "E-Deposition 3D (keV/mm)",
 "Secondary List",
-"E-Deposition Total (keV)",
-"E-Deposition y (keV)",
+"Photon Death - Boundary Percent (Internal,Boundary)",
+"Photon Death - Boundary Process List (OpAbs,Transport,Other)",
 "E-Deposition opticalPhotons (keV)",
 "E-Deposition e-  (keV)",
 "Dose (Gy)",
@@ -117,12 +117,13 @@ void HistoManager::Book()
 "(NA)Photon Process (eBrem) 1D (n/mm x,y)",
 "Photon-Deposition-Spectrum 1D LEFT (n/nm x)",
 "Photon-Deposition-Spectrum 1D RIGHT (n/nm x)",
-"Average Photons Detected per interacted gamma for 2D LEFT (n/mm x,y)",
-"Average Photons Detected per interacted gamma for 2D RIGHT (n/mm x,y)",
+"Average Photons Detected per interacted gamma for 2D LEFT (n-mm x,y)",
+"Average Photons Detected per interacted gamma for 2D RIGHT (n-mm x,y)",
 "Gamma Interaction Position (n/mm x,y)",
 "Gamma PhotoElectric Position (n/mm x,y)",
 "Gamma Compton Position (n/mm x,y)",
-"Current Photons Distribution 2D (n/mm x,y)"};
+"Current Photons Distribution 2D (n/mm x,y)",
+"Photon Death 3D (mm x,y,z)"};
 
    const std::string second[] = { "positron","electron","opticalphoton","gammas","proton","alpha","Li6","Be7","C11","C12","N15","O15","O16"};
    const int secondSize = sizeof(second)/sizeof(second[0]);
@@ -171,9 +172,9 @@ G4cout << "### ####### " << worldsize << " worldsize." << G4endl;
 G4int nBinE = 100;
 G4int nBinG = 100;
 
-	G4int ih5 = analysisManager->CreateH1(title[4], title[4], nBinE,0,maxEn);
+	G4int ih5 = analysisManager->CreateH1(title[4], title[4], 2,-0.5,1.5);
     	analysisManager->SetH1Activation(ih5, true);
-ih5 = analysisManager->CreateH1(title[5], title[5], nBinE,0,maxEn);
+ih5 = analysisManager->CreateH1(title[5], title[5], 3,0,1);
     	analysisManager->SetH1Activation(ih5, true);
 ih5 = analysisManager->CreateH1(title[6], title[6], nBinE,0,maxEn);
     	analysisManager->SetH1Activation(ih5, true);
@@ -195,8 +196,11 @@ G4double Ox = -2.58*cm;
 G4double Oy = 4.83*cm;
 G4double Dx = 7.74*cm;
 G4double Dy = 10.32*cm;
+G4double Dz = 100*cm;
+G4double Oz = Dz/2;
 G4int nx = 3;
-G4int ny = 4; //4x4
+G4int ny = 16; //4x4
+
 
 G4int nDx = 10;
 G4int nDy = 256;
@@ -275,7 +279,8 @@ ih5 = analysisManager->CreateH2(title[33], title[33], nx, 0, nx, ny, 0, ny); //2
     analysisManager->SetH2Activation(ih5, true);
     ih5 = analysisManager->CreateH2(title[37], title[37], nx, (-Dx/2), (Dx/2), ny,(-Dy/2),(Dy/2)); //2d 17
     analysisManager->SetH2Activation(ih5, true);
-
+G4int ih6 = analysisManager->CreateH3(title[38], title[38], 50, (-Dx/2), (Dx/2),  50,(-Dy/2),(Dy/2), 50,(-Dz/2),(Dz/2)); //3d 1 (not 0)
+    analysisManager->SetH3Activation(ih6, true);
 ////////// Cross Section HISTOGRAMS ///////////////////////////////////////////////////////////////
     G4String cst = "Cross Section (barns-atom-MeV) - ";
     G4String cstT = cst + "Total";
@@ -294,14 +299,12 @@ ih5 = analysisManager->CreateH2(title[33], title[33], nx, 0, nx, ny, 0, ny); //2
     ih5 = analysisManager->CreateH1(cstr, cstr, bn, bo, bm); //22
     analysisManager->SetH1Activation(ih5, true);
 
-
-
-////////// Individual HISTOGRAMS ///////////////////////////////////////////////////////////////
+////////// L & R Pair HISTOGRAMS ///////////////////////////////////////////////////////////////
     G4int ni = 0; //(nmin)
     G4int na = 400; //(nmax)
     G4int nax = 8000;
     G4int nb = 100;
-    //.. 1D id starts from 23
+    //.. 1D id starts from 25, 2D starts from 18
 
     G4String cell = "_Photon-Deposition per gamma";
     G4String name;
@@ -310,6 +313,14 @@ ih5 = analysisManager->CreateH2(title[33], title[33], nx, 0, nx, ny, 0, ny); //2
     G4String ceren;
     G4String brem ;
     G4String n2;
+    G4String nR;
+
+    ih5 = analysisManager->CreateH1(cell + "-L", cell + "-L",  nb, ni, na);//23
+    analysisManager->SetH1Activation(ih5, true);
+    ih5 = analysisManager->CreateH1(cell + "-R",cell + "-R", nb, ni, na); //24
+    analysisManager->SetH1Activation(ih5, true);
+////////// Individual HISTOGRAMS ///////////////////////////////////////////////////////////////
+
  ///LEFT 
  for(int i = 1; i<=nx; i++)
  {
@@ -321,6 +332,7 @@ ih5 = analysisManager->CreateH2(title[33], title[33], nx, 0, nx, ny, 0, ny); //2
             ceren = name + " Cerenkov";
             brem  = name + " Bremsstrahlung";
             n2 = to_string(i)+to_string(j) + cell + "-Strips";
+            nR = to_string(i)+to_string(j) + cell + "-PDRatio";
         
         ih5 = analysisManager->CreateH1(name, name, nb, ni, na);
     	analysisManager->SetH1Activation(ih5, true);
@@ -334,6 +346,8 @@ ih5 = analysisManager->CreateH2(title[33], title[33], nx, 0, nx, ny, 0, ny); //2
     	analysisManager->SetH1Activation(ih5, true);
         ih5 = analysisManager->CreateH1(n2, n2, nb, ni, nax); 
     	analysisManager->SetH1Activation(ih5, true);
+        ih5 = analysisManager->CreateH2(nR, nR, nb, ni,nax,nb,0,0.2); 
+    	analysisManager->SetH2Activation(ih5, true);
         //G4cout << "finished stringing" << G4endl;
     }
     
