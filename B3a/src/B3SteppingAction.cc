@@ -285,6 +285,7 @@ void B3SteppingAction::UserSteppingAction(const G4Step* step)
 	 //// if (condition) G4RunManager::GetRunManager()->rndmSaveThisEvent();  
 
 	//-----------Histograms----------
+	G4LogicalVolume* volm = prePoint->GetTouchableHandle()->GetVolume()->GetLogicalVolume();
 	G4String vol = prePoint->GetTouchableHandle()->GetVolume()->GetLogicalVolume()->GetName();
 	if (prePoint->GetStepStatus() == fGeomBoundary)
 	{
@@ -303,6 +304,11 @@ void B3SteppingAction::UserSteppingAction(const G4Step* step)
 			analysisManager->FillH2(3, (x-Ox), (y-Oy), 1);
 			analysisManager->FillH2(5, (x-Ox), (y-Oy), 1);
 			analysisManager->FillH1(18,  lambdaP, 1);
+		}
+		else if (volm->GetMaterial()->GetName().compare("EJ280") == 0)
+		{
+			G4double lambdaP = (h*c)/(Eprim*1000*nanop);
+			analysisManager->FillH1(4, lambdaP,1);
 		}
 	}
 

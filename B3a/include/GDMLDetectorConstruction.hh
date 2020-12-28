@@ -50,43 +50,13 @@ class G4LogicalVolume;
 //#include "B3DetectorConstruction.hh"
 class GDMLDetectorConstruction : public DetectorConstruction
 {
-  private:
-	int MPT_UPDATE;
   public:
-	G4Material* EJ208;
+	G4Material* EJ280;
 	G4Material* Vikuiti;
 	G4Material* Air;
 	G4Material* TPB;
 	double rho_pvt = 1.023*g/cm3;
-	void UPDATE_GEO_MPT()
-	{
-		MPT_UPDATE = 1;
-		G4RunManager* runManager = G4RunManager::GetRunManager();
-		// Open geometry for the physical volume to be modified ...
-		G4GeometryManager* geo = G4GeometryManager::GetInstance();
-		geo->OpenGeometry(World);
-		// Modify dimension of the solid ...
-		//
-		//World->GetLogicalVolume()->ClearDaughters();
-		//World->GetLogicalVolume()->Clean();
-		//Parser->Clear();
-		//Parser->Read("gdml.gdml",false);
-		//World = Parser->GetWorldVolume();
-		//WorldBuild((*Parser), World);
-		WorldMod();
-		
-		// Close geometry for the portion modified ...
-		//
-		geo->CloseGeometry(World);
-		G4VVisManager* visManager = G4VVisManager::GetConcreteInstance();
-		visManager->GeometryHasChanged();
-		runManager->PhysicsHasBeenModified();
-		runManager->GeometryHasBeenModified();
-		//runManager->ReinitializeGeometry(true);		
-		//EJ208->GetMaterialPropertiesTable()->DumpTable();
-		//Vikuiti->GetMaterialPropertiesTable()->DumpTable();
-		//Air->GetMaterialPropertiesTable()->DumpTable();
-	}
+
 	G4double length (G4double v[],int size) {
 		G4double len = 0;
 		for(int i =0;i<size;i++)
@@ -111,133 +81,7 @@ class GDMLDetectorConstruction : public DetectorConstruction
     	}
    		return result;
    	}
-	void WorldMod()
-	{
-		G4cout << "--//-------------------------------------------WORLDMODDING-------------------------------------------//--" << G4endl;
-
-			//if visible, (3.105*eV to 1.774*eV), Att length = 400NM! - override.
-		//----------------------------------------------------------------------ATT READIN------------------------------------------------////
-			vector<G4double> att_length_ejRV= *new vector<G4double>();
-			vector<G4double> PhotonEnergyRV= *new vector<G4double>();
-			vector<G4double> NPhotonEnergyRV = *new vector<G4double>();
-			vector<G4double> rayScr_length_pvtRV = *new vector<G4double>();
-			string line;
-			int sz0 = 0;
-			char delm = '|';
-			string fn ="";
-			if(MPT_UPDATE<0)
-			{
-				fn = "PVT.txt";
-			}
-			else
-			{
-				fn = "lambdas5.txt";
-				delm = ' ';
-			}
-			ifstream myfile(fn);
-			G4cout << "OPENING PVT FILE -----------";
-			if (myfile.is_open())
-			{
-				if(MPT_UPDATE<0)
-				{
-					getline (myfile,line);
-					getline (myfile,line);
-					getline (myfile,line);
-				}
-				G4cout << G4endl;
-				while ( getline (myfile,line) )
-				{
-					G4double en = 0;
-					G4double rayScr_CS = 0;
-					G4double att_CS = 0;
-					G4double rS_l = 0;
-					G4double att_l = 0;
-					vector<string> val = split(line,delm);
-					if(MPT_UPDATE<0)
-					{
-						en = G4double(stod(val[0]));
-						PhotonEnergyRV.push_back(en);
-						NPhotonEnergyRV.push_back(en);
-						rayScr_CS = G4double(stod(val[1]))*cm2/g;
-						att_CS = G4double(stod(val[4]))*cm2/g;
-						rS_l = 1/(rho_pvt*rayScr_CS);
-						att_l = 1/(rho_pvt*att_CS);
-						G4cout << "1ST SET" << G4endl;
-					}
-					else
-					{
-						en = G4double(stod(val[0]))*MeV;
-						//G4cout << val.size() << " " << en << G4endl; //size
-						PhotonEnergyRV.push_back(en);
-						NPhotonEnergyRV.push_back(en);
-						rayScr_CS = G4double(stod(val[4]))*g/cm2; //
-						att_CS = G4double(stod(val[5]))*g/cm2;
-						rS_l = rayScr_CS/(rho_pvt);
-						att_l = att_CS/(rho_pvt);
-						//G4cout << "2nd SET" << G4endl;
-						if((en<(3.105*eV)) && (en>(1.774*eV)))
-						{
-							att_l = 400*cm;
-							//G4cout << "MODIFIED OPTICAL ATTENUATION." << G4endl;
-						}
-						
-
-					}
-								
-					rayScr_length_pvtRV.push_back(rS_l);
-					att_length_ejRV.push_back(att_l);
-					//G4cout << "values  : " << val[0] << " "<<rS_l/cm<<" "<<att_l/cm<<G4endl;
-					sz0+=1;
-				}
-				myfile.close();
-				G4cout << "opened file" << G4endl;
-			}
-			else {G4cout << "Unable to open file" << G4endl; exit(3);}
-
-			G4double att_length_ejR[sz0];
-			G4double PhotonEnergyR[sz0];
-			G4double rayScr_length_pvtR[sz0];
-			G4double NPhotonEnergyR[sz0];
-			memcpy( att_length_ejR, &att_length_ejRV[0], sizeof(double) * att_length_ejRV.size() );
-			memcpy( PhotonEnergyR, &PhotonEnergyRV[0], sizeof(double) * PhotonEnergyRV.size() );
-			memcpy( rayScr_length_pvtR, &rayScr_length_pvtRV[0], sizeof(double) * rayScr_length_pvtRV.size() );
-			memcpy( NPhotonEnergyR, &NPhotonEnergyRV[0], sizeof(double) * NPhotonEnergyRV.size() );
-		//----------------------------------------------------------------------RED MAT----------------------------------------------------////
-			EJ208->GetMaterialPropertiesTable()->RemoveProperty("ABSLENGTH");
-			EJ208->GetMaterialPropertiesTable()->RemoveProperty("RAYLEIGH");
-			EJ208->GetMaterialPropertiesTable()->AddProperty("ABSLENGTH",PhotonEnergyR,att_length_ejR,sz0);// MODIFIED WITH DATA
-			EJ208->GetMaterialPropertiesTable()->AddProperty("RAYLEIGH",PhotonEnergyR,rayScr_length_pvtR,sz0);// MODIFIED WITH DATA
-		int i = 0;
-		//G4NistManager* man = G4NistManager::Instance();
-		while(true)
-		{
-			G4VPhysicalVolume* V = World->GetLogicalVolume()->GetDaughter(i);
-			if(V!=NULL)
-			{
-				string name = V->GetName();
-				#ifdef SingleStrip
-				string name0 = "EJ208(1)";
-				#else
-				string name0 = "EJ208";
-				#endif
-				if(name.find(name0) != std::string::npos)
-				{
-					//V->GetLogicalVolume()->SetMaterial(man->FindMaterial("G4_AIR"));
-					V->GetLogicalVolume()->SetMaterial(EJ208);
-					#ifdef SingleStrip
-					G4cout <<"updated EJ208!" <<G4endl;
-					#endif
-				}
-			}
-			else
-			{
-				break;
-			}
-			
-			i+=1;
-		}
-		//World->GetLogicalVolume()->GetDaughter(0)->GetLogicalVolume()->GetMaterial()->GetMaterialPropertiesTable()->DumpTable();
-	}
+	
 	void WorldBuild(G4GDMLParser& parser, G4VPhysicalVolume *setWorld )
    {
 	   G4cout << "--//-------------------------------------------WORLDBUILDING-------------------------------------------//--" << G4endl;
@@ -275,18 +119,21 @@ class GDMLDetectorConstruction : public DetectorConstruction
 
 //----------------------------------------------------------------------MIX MAT----------------------------------------------------////
 	#ifndef PVTTest
-		EJ208 = new G4Material("EJ208",11.33*g/cm3,2);
-		EJ208->AddMaterial(PVT,95*perCent);
-		EJ208->AddMaterial(LeadM,5*perCent);
+		EJ280 = new G4Material("EJ280",rho_pvt,1);
+		EJ280->AddMaterial(PVT,100*perCent);
+		//EJ280->AddMaterial(LeadM,5*perCent);
 	#else
-		EJ208 = PVT;
+		 EJ280= PVT;
 	#endif
 //----------------------------------------------------------------------MAT TABLES------------------------------------------------////
 	const G4int n = 6;
 	const G4int n2 = 10;
+	const G4int n3 = 8;
 	G4double PhotonEnergy[n] = {3.105*eV,2.95714*eV,2.855*eV,2.7*eV,2.5875*eV,2.388*eV}; //visible spectrum (400,420,435,460,480,520)nm
-	G4double TPBPhotonEnergy[n2] = {12.3985*eV,6.19926*eV,4.1328*eV,3.5424*eV,3.105*eV,2.95714*eV,2.855*eV,2.7*eV,2.5875*eV,2.388*eV};//visible spectrum (100,200,300,350,400,420,435,460,480,520)nm
-
+	G4double TPBPhotonEnergy[n2] = {12.3985*eV,6.19926*eV,4.1328*eV,3.5424*eV,3.105*eV,2.95714*eV,2.855*eV,2.7*eV,2.5875*eV,2.388*eV};
+	//visible spectrum (100,200,300,350,400,420,435,460,480,520)nm
+	G4double TPB2PhotonEnergy[n3] = {10.332*eV,8.856*eV,7.749*eV,6.888*eV,6.199*eV,5.635*eV,5.166*eV,4.959*eV};
+	//visible spectrum (120,140,160,180,200,220,240,250)nm
 	G4double refractive_index_vk[n] = {1.6,1.6,1.6,1.6,1.6,1.6};
 	G4double att_length_vk[n] = {400*cm,400*cm,400*cm,400*cm,400*cm,400*cm};
 
@@ -295,14 +142,15 @@ class GDMLDetectorConstruction : public DetectorConstruction
 
 	//Spectroscopic and travelling-wave lasing characterisation of tetraphenylbenzidine and di-naphtalenyl-diphenylbenzidine
 	//Measurements of the intrinsic quantum efficiency and absorption length of tetraphenyl butadiene thin films in the vacuum ultraviolet regime
+	//https://arxiv.org/pdf/1104.3259.pdf or (https://inspirehep.net/literature/896493)
 	G4double refractive_index_tpb[n2] = {1.67,1.67,2.2,1.79,1.9,1.8,1.8,1.79,1.75,1.72};// the following values are preliminary from articles above - needs updating!
-	G4double att_length_tpb[n2] = {100*nm,100*nm,100*nm,31.6*nm,2000*nm,10000*nm,20000*nm,1*mm,1*mm,1*mm};
+	G4double att_length_tpb[n2] = {400*nm,300*nm,100*nm,31.6*nm,2000*nm,10000*nm,20000*nm,1*mm,1*mm,1*mm};
 	G4double ray_length_tpb[n2] = {10*m,10*m,10*m,2.75*um,2.75*um,2.75*um,2.75*um,2.75*um,2.75*um,2.75*um};
 	G4double em_tpb[n2] = {0,0,0,0,0.00665,0.013,0.012,0.008,0.004,0.002};
 	normalize(em_tpb,n2);
 	G4double tc_tpb = 3*ns;
 	G4double reflectivity_tpb[n2] = {1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0};
-	G4double efficiency2[n2] = {1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0};
+	G4double efficiency2[n3] = {1.35,1.05,0.85,0.8,0.8,0.9,0.9,0.85};
 //----------------------------------------------------------------------ATT READIN------------------------------------------------////
 	vector<G4double> att_length_ejRV(begin(att_length_ej), end(att_length_ej));
 	vector<G4double> PhotonEnergyRV(begin(PhotonEnergy), end(PhotonEnergy));
@@ -312,26 +160,14 @@ class GDMLDetectorConstruction : public DetectorConstruction
 	int sze = n;
 	int sz0 = 0;
 	char delm = '|';
-	string fn ="";
-	if(MPT_UPDATE<0)
-	{
-		fn = "PVT.txt";
-	}
-	else
-	{
-		fn = "lambdas5.txt";
-		delm = ' ';
-	}
+	string fn = "PVT.txt";
 	ifstream myfile(fn);
 	G4cout << "OPENING PVT FILE -----------";
   	if (myfile.is_open())
   	{
-		if(MPT_UPDATE<0)
-		{
-			getline (myfile,line);
-			getline (myfile,line);
-			getline (myfile,line);
-		}
+		getline (myfile,line);
+		getline (myfile,line);
+		getline (myfile,line);
 		G4cout << G4endl;
     	while ( getline (myfile,line) )
     	{
@@ -341,30 +177,16 @@ class GDMLDetectorConstruction : public DetectorConstruction
 			G4double rS_l = 0;
 			G4double att_l = 0;
 			vector<string> val = split(line,delm);
-			if(MPT_UPDATE<0)
-			{
-				en = G4double(stod(val[0]));
-				PhotonEnergyRV.push_back(en);
-				NPhotonEnergyRV.push_back(en);
-				rayScr_CS = G4double(stod(val[1]))*cm2/g;
-				att_CS = G4double(stod(val[4]))*cm2/g;
-				rS_l = 1/(rho_pvt*rayScr_CS);
-				att_l = 1/(rho_pvt*att_CS);
-				G4cout << "1ST SET" << G4endl;
-			}
-			else
-			{
-				en = G4double(stod(val[0]));
-				//G4cout << val.size() << " " << en << G4endl; //size
-				PhotonEnergyRV.push_back(en);
-				NPhotonEnergyRV.push_back(en);
-				rayScr_CS = G4double(stod(val[4]))*g/cm2; //
-				att_CS = G4double(stod(val[5]))*g/cm2;
-				rS_l = rayScr_CS/(rho_pvt);
-				att_l = att_CS/(rho_pvt);
-				//G4cout << "2nd SET" << G4endl;
-			}
-						
+
+			en = G4double(stod(val[0]));
+			PhotonEnergyRV.push_back(en);
+			NPhotonEnergyRV.push_back(en);
+			rayScr_CS = G4double(stod(val[1]))*cm2/g;
+			att_CS = G4double(stod(val[4]))*cm2/g;
+			rS_l = 1/(rho_pvt*rayScr_CS);
+			att_l = 1/(rho_pvt*att_CS);
+			G4cout << "1ST SET" << G4endl;
+
 			rayScr_length_pvtRV.push_back(rS_l);
 			att_length_ejRV.push_back(att_l);
 			//G4cout << "values  : " << val[0] << " "<<rS_l/cm<<" "<<att_l/cm<<G4endl;
@@ -417,17 +239,8 @@ class GDMLDetectorConstruction : public DetectorConstruction
 	tpbMPT->AddConstProperty("WLSTIMECONSTANT",tc_tpb);
 	//tpbMPT->AddProperty("RAYLEIGH", TPBPhotonEnergy,ray_length_tpb,n2); should we use Rayleigh?
 
-	if(MPT_UPDATE<0)
-	{
-		scintMPT->AddProperty("ABSLENGTH",PhotonEnergyR,att_length_ejR,sze);// MODIFIED WITH DATA
-		//scintMPT->AddProperty("RAYLEIGH",NPhotonEnergyR,rayScr_length_pvtR,sz0); turn this off for now!
-	}
-	else
-	{
-		scintMPT->RemoveProperty("ABSLENGTH");
-		scintMPT->RemoveProperty("RAYLEIGH");
-		scintMPT->AddProperty("ABSLENGTH",PhotonEnergyR,att_length_ejR,sze);// MODIFIED WITH DATA
-	}
+	scintMPT->AddProperty("ABSLENGTH",PhotonEnergyR,att_length_ejR,sze);// MODIFIED WITH DATA
+	scintMPT->AddProperty("RAYLEIGH",NPhotonEnergyR,rayScr_length_pvtR,sz0);
 
 	#ifndef ScintillationDisable
 	scintMPT->AddProperty("FASTCOMPONENT", PhotonEnergy, fast, n);
@@ -441,21 +254,16 @@ class GDMLDetectorConstruction : public DetectorConstruction
 	#endif
 
 	Air->SetMaterialPropertiesTable(airMPT);
-	EJ208->SetMaterialPropertiesTable(scintMPT);
+	EJ280->SetMaterialPropertiesTable(scintMPT);
 	Vikuiti->SetMaterialPropertiesTable(vkMPT);
 
-	/*if(MPT_UPDATE>0)
-	{
-		WorldMod();
-		return;
-	}*/
 //----------------------------------------------------------------------SETSURF----------------------------------------------------////
 	surfVKMPT->AddProperty("REFLECTIVITY", PhotonEnergy, reflectivity_vk, n);
 	surfEJMPT->AddProperty("REFLECTIVITY", PhotonEnergy, reflectivity_vk, n); // WHAT is the EJ reflectivity?
 	surfTPBMPT->AddProperty("REFLECTIVITY", PhotonEnergy, reflectivity_tpb, n2); 
 	surfVKMPT->AddProperty("EFFICIENCY", PhotonEnergy, efficiency, n);
 	surfEJMPT->AddProperty("EFFICIENCY", PhotonEnergy, efficiency, n);
-	surfTPBMPT->AddProperty("EFFICIENCY", PhotonEnergy, efficiency2, n2); //NO Quantum efficiency implementation yet!
+	surfTPBMPT->AddProperty("EFFICIENCY", PhotonEnergy, efficiency2, n3);
 	surfVKMPT->AddProperty("RINDEX", PhotonEnergy,refractive_index_vk,n);
 	surfEJMPT->AddProperty("RINDEX", PhotonEnergy,refractive_index_ej,n);
 	surfTPBMPT->AddProperty("RINDEX", PhotonEnergy,refractive_index_tpb,n2);
@@ -506,8 +314,8 @@ class GDMLDetectorConstruction : public DetectorConstruction
 
 	#ifdef LYSOTest
 		LYSO* lyse = new LYSO();
-		EJ208 = lyse->LYSOmat();
-		//printf("\n\n LYSO NAME: %s",EJ208->GetName()); HAS AN ERROR
+		EJ280 = lyse->LYSOmat();
+		//printf("\n\n LYSO NAME: %s",EJ280->GetName());
 		surfEJ = lyse->LYSOsurf();
 	#endif
 
@@ -522,7 +330,7 @@ class GDMLDetectorConstruction : public DetectorConstruction
 
 	#ifdef SSRefractionTest
 		G4Box* world = new G4Box("World",(20*length_D),(20*length_D),(20*length_D));
-		G4LogicalVolume* logicW = new G4LogicalVolume(world,EJ208,"World");
+		G4LogicalVolume* logicW = new G4LogicalVolume(world,EJ280,"World");
 		logicW->SetMaterial(Air);
 		logicW->SetVisAttributes (invis_col);
 		World = new G4PVPlacement(0,G4ThreeVector(), logicW,"World", 0, false,0);
@@ -531,68 +339,13 @@ class GDMLDetectorConstruction : public DetectorConstruction
 		VOL->SetMaterial(Air);
 	#endif
 
-	#ifdef MultipleStripCell
-
-	G4LogicalVolume* EJvol;
-	G4VPhysicalVolume* EJvol_P;
-	G4LogicalSkinSurface* EJsurf;
-	G4String a;
-	for (G4int i = 1; i <= 48; i++) 
-	{
-        //char a[100];
-		a = "S_EJ208(";
-	 	a = a + to_string(i);
-	  	a = a + ")";
-        //sprintf(a,"%d", i);
-        //strcat(a,")");
-        EJvol = parser.GetVolume(a);
-	  	EJvol->SetMaterial(EJ208);
-	  	EJvol->SetVisAttributes (red_col);
-	  	EJsurf = new G4LogicalSkinSurface("surfEJ_L",EJvol, surfEJ); 
-    }
-
-	G4LogicalVolume* VKvol;
-	G4VPhysicalVolume* VKvol_P;
-	G4LogicalSkinSurface* VKsurf;
-	for (G4int i = 1; i <= 48; i++) 
-	{
-        //char a[100];
-		a = "S_Vikuiti(";
-	  	a = a + to_string(i);
-	  	a = a + ")";
-        //sprintf(a,"%d", i);
-        //strcat(a,")");
-        VKvol = parser.GetVolume(a);
-	  	VKvol->SetMaterial(Vikuiti);
-	  	VKvol->SetVisAttributes (blue_col);
-	  	VKsurf = new G4LogicalSkinSurface("surfVK_L",VKvol, surfVK);
-    }
-
-	//--------- Detecting (SiPM like) Endcap Geometry -------------//\\
-
-	G4double dX = 7.74*cm; G4double dY = 10.32*cm; G4double dZ = 1*cm;
-	G4Box* det = new G4Box("det", dX/2, dY/2, dZ/2);
-	//G4Box* ydet = new G4Box("ydet", 0.5*cm, dY/2, length_D/2);
-	G4LogicalVolume* logicDetR = new G4LogicalVolume(det,EJ208,"detVOLR");
-	G4LogicalVolume* logicDetL = new G4LogicalVolume(det,EJ208,"detVOLL");
-	//G4LogicalVolume* logicDetY = new G4LogicalVolume(ydet,EJ208,"detVOLY");
-	logicDetR->SetVisAttributes (det_col);
-	logicDetL->SetVisAttributes (det_col);
-	//logicDetY->SetVisAttributes (det_col);
-    G4ThreeVector pos = G4ThreeVector(-2.58*cm,4.83*cm,-0.5001*cm);
-	G4ThreeVector pos2 = G4ThreeVector(-2.58*cm,4.83*cm,(length_D+0.5001*cm));
-	//G4ThreeVector pos3 = G4ThreeVector((-2.58*cm-(dX/2)-0.5001*cm),4.83*cm,(length_D/2));
-	new G4PVPlacement(0,pos,"det",logicDetR,World, false,0,fCheckOverlaps);       // checking overlaps 
-	new G4PVPlacement(0,pos2,"det",logicDetL,World, false,0,fCheckOverlaps); 
-	//new G4PVPlacement(0,pos3,"ydet",logicDetY,World, false,0,fCheckOverlaps); 
-
-	#endif
 	#ifdef SingleStrip
 
 		#ifdef LEGEND
-			G4Box* tpb= new G4Box("TPB",2.54*cm/2.0,5*um/2.0,50*cm);
+			G4double tns = 5*um;
+			G4Box* tpb= new G4Box("TPB",2.54*cm/2.0,tns/2.0,50*cm);
 			G4LogicalVolume* lc = new G4LogicalVolume(tpb,TPB,"TPB");
-			G4ThreeVector postpb = G4ThreeVector(-5.14*cm,(9.97*cm+2.5*um),50*cm);
+			G4ThreeVector postpb = G4ThreeVector(-5.14*cm,(9.97*cm+(tns/2.0)),50*cm);
 			lc->SetVisAttributes (tpb_col);
 			G4LogicalSkinSurface* TPBsurf = new G4LogicalSkinSurface("surfTPB_L",lc, surfTPB); 	
 			G4VPhysicalVolume* pC = new G4PVPlacement(0,postpb,"TPB", lc, World, false,0); //TPB film
@@ -614,7 +367,7 @@ class GDMLDetectorConstruction : public DetectorConstruction
         //sprintf(a,"%d", i);
         //strcat(a,")");
         EJvol = parser.GetVolume(a);
-	  	EJvol->SetMaterial(EJ208);
+	  	EJvol->SetMaterial(EJ280);
 	  	EJvol->SetVisAttributes (red_col);
 	  	EJsurf = new G4LogicalSkinSurface("surfEJ_L",EJvol, surfEJ); 	
     }
@@ -651,8 +404,8 @@ class GDMLDetectorConstruction : public DetectorConstruction
 	#else
 	G4double len = length_D*2;
 	G4Box* testP = new G4Box("S_EJ208",len,len,len);
-	G4LogicalVolume* EJvol = new G4LogicalVolume(testP,EJ208,"S_EJ208");
-	EJvol->SetMaterial(EJ208);
+	G4LogicalVolume* EJvol = new G4LogicalVolume(testP,EJ280,"S_EJ208");
+	EJvol->SetMaterial(EJ280);
 	EJvol->SetVisAttributes (red_col);
 	G4ThreeVector posV = G4ThreeVector(0*cm,0*cm,len);
 	G4VPhysicalVolume* pC = new G4PVPlacement(0,posV,"S_EJ208", EJvol, World, false,0);
@@ -671,26 +424,18 @@ class GDMLDetectorConstruction : public DetectorConstruction
 	G4ThreeVector pos = G4ThreeVector(0*cm,0*cm,-0.5001*cm);
 	G4ThreeVector pos2 = G4ThreeVector(0*cm,0*cm,(dY + 0.5001*cm));
 	#endif
-	G4LogicalVolume* logicDetR = new G4LogicalVolume(det,EJ208,"detVOLR");
-	G4LogicalVolume* logicDetL = new G4LogicalVolume(det,EJ208,"detVOLL");
+	G4LogicalVolume* logicDetR = new G4LogicalVolume(det,EJ280,"detVOLR");
+	G4LogicalVolume* logicDetL = new G4LogicalVolume(det,EJ280,"detVOLL");
 	logicDetR->SetVisAttributes (det_col);
 	logicDetL->SetVisAttributes (det_col);
 	new G4PVPlacement(0,pos,"det",logicDetR,World, false,0,fCheckOverlaps);       // checking overlaps 
 	new G4PVPlacement(0,pos2,"det",logicDetL,World, false,0,fCheckOverlaps); 
 	#endif
-
-
-
-
-	/*G4Tubs* testP = new G4Tubs("Crystal",0*cm,10*cm, 5*cm,0,2*pi);
-	G4LogicalVolume* lc = new G4LogicalVolume(testP,EJ208,"Crystal");
-	G4ThreeVector pos = G4ThreeVector(0*cm,0*cm,0*cm);
-	G4VPhysicalVolume* pC = new G4PVPlacement(0,pos,"Crystal", lc, World, false,0); //test crystal
-
-	G4Tubs* testP2 = new G4Tubs("Crystal2",4*cm,10*cm, 5*cm,0,2*pi);
-	G4LogicalVolume* lc2 = new G4LogicalVolume(testP2,Vikuiti,"Crystal2");
-	G4ThreeVector pos2 = G4ThreeVector(0*cm,8*cm,8*cm);
-	G4VPhysicalVolume* pC2 = new G4PVPlacement(0,pos2,"Crystal2", lc2, World, false,0);*/
+	G4VVisManager* visManager = G4VVisManager::GetConcreteInstance();
+	G4RunManager* runManager = G4RunManager::GetRunManager();
+	visManager->GeometryHasChanged();
+	runManager->PhysicsHasBeenModified();
+	runManager->GeometryHasBeenModified();
    }
 
     GDMLDetectorConstruction(G4GDMLParser& parser, G4VPhysicalVolume *setWorld=0) : DetectorConstruction()
@@ -705,7 +450,6 @@ class GDMLDetectorConstruction : public DetectorConstruction
 		#endif
 
 	//--------------
-		MPT_UPDATE = -1;
 		//WorldBuild(parser, setWorld);
    }
 
@@ -736,11 +480,10 @@ class GDMLDetectorConstruction : public DetectorConstruction
         SetSensitiveDetector("detVOLL",detL);
 		SetSensitiveDetector("detVOLR",detR);
 		//SetSensitiveDetector("detVOLY",detY);
-
     }
 	G4Material* GetMaterial()
 	{
-		return EJ208;
+		return EJ280;
 	}
 
 

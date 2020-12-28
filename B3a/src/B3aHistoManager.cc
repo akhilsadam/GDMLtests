@@ -91,7 +91,7 @@ void HistoManager::Book()
 "Secondary List",
 "Photon Death - Boundary Percent (Internal,Boundary)",
 "Photon Death - Boundary Process List (OpAbs,Transport,Other)",
-"E-Deposition opticalPhotons (keV)",
+"Post-TPB Wavelength Distribution",
 "E-Deposition e-  (keV)",
 "Dose (Gy)",
 "Energy Change (keV/step)",
@@ -176,7 +176,7 @@ G4int nBinG = 100;
     	analysisManager->SetH1Activation(ih5, true);
 ih5 = analysisManager->CreateH1(title[5], title[5], 3,0,1);
     	analysisManager->SetH1Activation(ih5, true);
-ih5 = analysisManager->CreateH1(title[6], title[6], nBinE,0,maxEn);
+ih5 = analysisManager->CreateH1(title[6], title[6], 6*nBinE,Lmin,Lmax);
     	analysisManager->SetH1Activation(ih5, true);
 ih5 = analysisManager->CreateH1(title[7], title[7], nBinE,0,maxEn);
     	analysisManager->SetH1Activation(ih5, true);

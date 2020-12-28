@@ -42,14 +42,13 @@
 #include "GDMLDetectorConstruction.hh"
 
 #ifdef CrossSectionTest
-	#include "G4ProcessManager.hh"
-	#include "G4LossTableManager.hh"
-	#include "G4PhysicalConstants.hh"
-	#include "G4SystemOfUnits.hh"
-	#include "G4EmCalculator.hh"
-	#include "CrossSectionTester.hh"
+  #include "G4ProcessManager.hh"
+  #include "G4LossTableManager.hh"
+  #include "G4PhysicalConstants.hh"
+  #include "G4SystemOfUnits.hh"
+  #include "G4EmCalculator.hh"
+  #include "CrossSectionTester.hh"
 #endif
-
 #include <time.h>
 
 std::mutex foo21;
@@ -59,8 +58,6 @@ bool B3aRunAction::CrossSectionTrue = true;
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 B3aRunAction::B3aRunAction(G4VUserDetectorConstruction* patient, B3PrimaryGeneratorAction* kin)
  : G4UserRunAction(),
-   fGoodEvents(0),
-   fSumDose(0.),
    fpatient(patient),
    fHistoManager(0)
 {  
@@ -76,10 +73,6 @@ B3aRunAction::B3aRunAction(G4VUserDetectorConstruction* patient, B3PrimaryGenera
   new G4UnitDefinition("nanogray" , "nanoGy"  , "Dose", nanogray);
   new G4UnitDefinition("picogray" , "picoGy"  , "Dose", picogray);
 
-  // Register accumulable to the accumulable manager
-  G4AccumulableManager* accumulableManager = G4AccumulableManager::Instance();
-  accumulableManager->RegisterAccumulable(fGoodEvents);
-  accumulableManager->RegisterAccumulable(fSumDose); 
   fHistoManager = new HistoManager(fpatient);
   fPrimary = kin;
   CrossSectionTrue = false;

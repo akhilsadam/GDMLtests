@@ -48,7 +48,6 @@ B3PrimaryGeneratorAction::B3PrimaryGeneratorAction()
 {
     // default particle kinematic
 
-  #ifdef MultipleStripCell
   G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();
   G4int n_particle = 1;
   fParticleGun  = new G4ParticleGun(n_particle);
@@ -57,7 +56,6 @@ B3PrimaryGeneratorAction::B3PrimaryGeneratorAction()
   fParticleGun->SetParticlePosition(G4ThreeVector(0.,0.,0.));
   fParticleGun->SetParticleEnergy(511*keV);  //SetParticleEnergy(1*eV); between 70-250 MeV   
   fParticleGun->SetParticleMomentumDirection(G4ThreeVector(-1,0,0));
-  #endif
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

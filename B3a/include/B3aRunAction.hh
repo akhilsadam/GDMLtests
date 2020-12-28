@@ -51,15 +51,10 @@ class B3aRunAction : public G4UserRunAction
     virtual void BeginOfRunAction(const G4Run*);
     virtual void   EndOfRunAction(const G4Run*);
 
-    void CountEvent()           { fGoodEvents += 1; };
-    void SumDose(G4double dose) { fSumDose += dose; };  
-
     G4int nevents;
     inline G4int GetNevents() { return nevents;}
 
 private:
-    G4Accumulable<G4int>    fGoodEvents;
-    G4Accumulable<G4double> fSumDose;  
     HistoManager* fHistoManager;
     G4VUserDetectorConstruction* fpatient;
     B3PrimaryGeneratorAction* fPrimary;
